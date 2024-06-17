@@ -88,20 +88,27 @@ class Device:
         return False
 
     def refresh_remote_session(self):
-        res = requests.delete(
-            API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
-            headers={
-                "Authorization": f"Bearer {self._cloud_api.token}",
-                "accept": "*/*",
-            },
-        )
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not delete remote session on {self._uuid}, error: {res.status_code}"
+        try:
+            res = requests.delete(
+                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+                headers={
+                    "Authorization": f"Bearer {self._cloud_api.token}",
+                    "accept": "*/*",
+                },
             )
-            self._log.error(json.dumps(res.json(), indent=2))
+            if res.status_code != 200:
+                self._log.error(
+                    f"Error: could not delete remote session on {self._uuid}, error: {res.status_code}"
+                )
+                self._log.error(json.dumps(res.json(), indent=2))
+                return
 
-        self._log.info("Remote session deleted")
-        self._remote_session_port, self._remote_session_time = (
-            self._create_remote_session()
-        )
+            self._log.info("Remote session deleted")
+            self._remote_session_port, self._remote_session_time = (
+                self._create_remote_session()
+            )
+
+        except requests.RequestException as e:
+            self._log.error(
+                f"Request exception occurred during remote session deletion for {self._uuid}: {str(e)}"
+            )

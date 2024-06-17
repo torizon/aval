@@ -11,6 +11,12 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
 
+test:
+  script:
+    - pip install -r ./requirements.txt
+    - coverage run -m unittest discover -v -s . -p 'test_*.py'
+    - coverage report -m
+
 run:
   script:
     - pip install -r ./requirements.txt
