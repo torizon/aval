@@ -1,24 +1,27 @@
-image: python:latest
-
-before_script:
-  - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
-  - eval $(ssh-agent -s)
-  - echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add -
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - python --version ; pip --version
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
+lint:
+  image: registry.gitlab.com/pipeline-components/black:latest
+  script:
+    - black --check --verbose --line-length 80 -- *.py
 
 test:
+  image: python:latest
   script:
     - pip install -r ./requirements.txt
     - coverage run -m unittest discover -v -s . -p 'test_*.py'
     - coverage report -m
 
 run:
+  image: python:latest
   script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
+    - eval $(ssh-agent -s)
+    - echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - python --version ; pip --version
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
     - pip install -r ./requirements.txt
     - python main.py
   artifacts:
