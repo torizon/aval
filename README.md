@@ -35,6 +35,10 @@ As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb
 
 You'll also need to have a private key registered with your ssh-agent.
 
+## Using it in CI
+
+You must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
+
 ## Missing features
  - merge multiple junit files into one `report.xml`
  - synchronization mechanism (ie, implementing a lock with states like `AVAILABLE`, `RUNNING`, `OFFLINE` etc.
