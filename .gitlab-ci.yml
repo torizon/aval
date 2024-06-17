@@ -9,6 +9,12 @@ test:
     - pip install -r ./requirements.txt
     - coverage run -m unittest discover -v -s . -p 'test_*.py'
     - coverage report -m
+    - coverage xml
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 run:
   image: python:latest
