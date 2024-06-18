@@ -72,22 +72,3 @@ class CloudAPI:
                 return device
         self._log.info(f"Could not find device {uuid} on Cloud {cloud}")
         return None
-
-    @staticmethod
-    def is_online(last_seen_str):
-        log = logging.getLogger(__name__)
-        if last_seen_str is None:
-            log.warning("Device last seen date string is empty.")
-            return False
-        last_seen = dateutil.parser.parse(last_seen_str)
-        diff = (
-            datetime.datetime.now().astimezone(datetime.timezone.utc)
-            - last_seen
-        )
-
-        if diff.seconds > 70:
-            log.info("Device is offline (more than 70s since last seen)")
-            return False
-
-        log.info(f"Device is online ({diff.seconds}s since last seen)")
-        return True
