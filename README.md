@@ -27,6 +27,13 @@ DEVICE_PASSWORD
 SOC_UDT
 ```
 
+Or build and run the container with those environment variables exported
+
+```
+docker build -t aval .
+docker run -it -e TORIZON_API_CLIENT_ID=<...> <...> python3 main.py
+```
+
 `SOC_UDT` (System-on-Chip Under Test) is a variable to match against the `Device ID` field under the Device Information tab under the Hardware section. 
 
 As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb` will match against `SOC_UDT=imx8`.
@@ -34,6 +41,12 @@ As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb
 `TORIZON_API_CLIENT_ID` and `TORIZON_API_SECRET_ID` can be obtained using the Torizon Cloud UI.
 
 You'll also need to have a private key registered with your ssh-agent.
+
+To run the unit tests, you can do it locally or also use the container using `coverage`:
+
+```
+docker run aval coverage run -m unittest discover -v -s . -p 'test_*.py'
+```
 
 ## Using it in CI
 
