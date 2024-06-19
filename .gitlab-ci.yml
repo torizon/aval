@@ -34,16 +34,11 @@ unit-test:
   needs:
     - container-build
 
+# run against a database deployed by the maintainer. See CODEOWNERS.
 e2e-test:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
   script:
-    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
-    - eval $(ssh-agent -s)
-    - echo "$PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - python --version ; pip --version
-    - python main.py
+    - /usr/local/bin/entrypoint.sh
   artifacts:
     when: always
     reports:

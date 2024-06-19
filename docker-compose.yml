@@ -1,0 +1,52 @@
+services:
+  aval_postgres:
+    image: postgres:13
+    container_name: aval_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  aval_pgadmin:
+    image: dpage/pgadmin4
+    container_name: aval_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - aval_postgres
+    links:
+      - aval_postgres:postgres_db
+
+  aval:
+    image: gitlab.int.toradex.com:4567/rd/torizon-core-containers/aval/aval:dev
+    environment:
+      TORIZON_API_CLIENT_ID: ${TORIZON_API_CLIENT_ID}
+      TORIZON_API_SECRET_ID: ${TORIZON_API_SECRET_ID}
+      PUBLIC_KEY: ${PUBLIC_KEY}
+      PRIVATE_KEY: ${PRIVATE_KEY}
+      DEVICE_PASSWORD: ${DEVICE_PASSWORD}
+      SOC_UDT: ${SOC_UDT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+    depends_on:
+      - aval_postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /usr/local/bin/entrypoint.sh
+
+
+volumes:
+  db_data:
+

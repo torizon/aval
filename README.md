@@ -9,7 +9,7 @@ Aval is meant to be used either locally or from a CI pipeline.
 
 An example can be found in the `example` folder.
 
-We have our test paylod (a container built from `example/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests - one passing and one failing. 
+We have our test paylod (a container built from `example/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests - one passing and one failing.
 
 `examples/run-tests.sh` is a bash script that invokes the suite and returns a `report.xml` in the `/home/torizon` folder inside the container, which will be a shared volume with the hosts (that's how Aval gets the junit xml back).
 
@@ -17,45 +17,59 @@ One interesting aspect is that Aval uses `fabric`, which echoes back the test ru
 
 For more information check the `main.py` file and `.gitlab-ci.yml`.
 
-## Developing
-Install dependencies with `pip install -r requirements.txt` and export the following environment variables:
-```
-TORIZON_API_CLIENT_ID
-TORIZON_API_SECRET_ID
-PUBLIC_KEY
-DEVICE_PASSWORD
-SOC_UDT
-```
+## Running it locally
 
-Or build and run the container with those environment variables exported
+The easiest way to try it is using the provided `docker-compose.yml`.
+You'll need a `.env` file as well, which can be created from the `.env.template` file.
 
-```
-docker build -t aval .
-docker run -it -e TORIZON_API_CLIENT_ID=<...> <...> python3 main.py
-```
+An explanation of each variable follows:
 
-`SOC_UDT` (System-on-Chip Under Test) is a variable to match against the `Device ID` field under the Device Information tab under the Hardware section. 
+- `POSTGRES_DB` is the name of the database. Defaults to `aval`.
+- `POSTGRES_HOST` is the IP of where the Postgres service is running. Defaults to `aval_postgres`, the same name of the service in `docker-compose.yml`.
+- `POSTGRES_PORT` is the database server port. Defaults to `5432`
+- `POSTGRES_USER` is the user used to login/authenticate into Postgres.
+- `POSTGRES_PASSWORD` is the password for `POSTGRES_USER`.
+- `PGADMIN_DEFAULT_EMAIL` is the default login e-mail for pgadmin (frontend for Postgres).
+- `PGADMIN_DEFAULT_PASSWORD` is the default password for pgadmin.
+- `TORIZON_API_CLIENT_ID` and `TORIZON_API_SECRET_ID` can be obtained using the Torizon Cloud UI.
+- `PUBLIC_KEY`, `PRIVATE_KEY` are the ones registered in the Torizon Cloud.
+- `DEVICE_PASSWORD` is the actual device password for the devices. We do not support having different password for each of the devices.
+- `SOC_UDT` (System-on-Chip Under Test) is a variable to match against the `Device ID` field under the Device Information tab under the Hardware section. As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb` will match against `SOC_UDT=imx8`.
 
-As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb` will match against `SOC_UDT=imx8`.
+Then just `docker-compose up --build`.
 
-`TORIZON_API_CLIENT_ID` and `TORIZON_API_SECRET_ID` can be obtained using the Torizon Cloud UI.
+## Developing 
 
-You'll also need to have a private key registered with your ssh-agent.
-
-To run the unit tests, you can do it locally or also use the container using `coverage`:
+To run the unit tests, you can do it locally or also use the container using `coverage`, overriding the entrypoint:
 
 ```
-docker run aval coverage run -m unittest discover -v -s . -p 'test_*.py'
+docker run --entrypoint coverage aval run -m unittest discover -v -s . -p 'test_*.py'
 ```
+
+Possibly useful commands to run it locally:
+
+```
+# exports variables from `.env` and runs the aval, assuming that the database is up
+env $(cat .env | xargs) python3 main.py
+```
+
+## Aval's Database
+
+Aval uses Postgres as a locking mechanism. In the future we may also opt to use it to gather testing statistics.
+
+The idea behind it is exploiting transaction atomicity for database operations, abusing it as a lock.
 
 ## Using it in CI
 
-You must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
+Note: you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
 ## Missing features
  - merge multiple junit files into one `report.xml`
- - synchronization mechanism (ie, implementing a lock with states like `AVAILABLE`, `RUNNING`, `OFFLINE` etc.
- - supporting multiple `SOC_UDT` (if synchronization is implemented this is also solved)
+ - Missing documentation about how to use it in CI
+ - Missing documentation about how to use mountpoints with the source code to make development easier
+ - Source and test code is not split at all at this moment, would be a very nice to have
+
+Other `TODO`s and `FIXME`s are probably in the code as well, so if you wanna fix something outright, just grep for that.
 
 ## Credits
 
