@@ -7,11 +7,11 @@ Aval is meant to be used either locally or from a CI pipeline.
 
 ## Example
 
-An example can be found in the `example` folder.
+An example can be found in the `meta-e2e-tests` folder.
 
-We have our test paylod (a container built from `example/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests - one passing and one failing.
+We have our test paylod (a container built from `meta-e2e-tests/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests - one passing and one failing.
 
-`examples/run-tests.sh` is a bash script that invokes the suite and returns a `report.xml` in the `/home/torizon` folder inside the container, which will be a shared volume with the hosts (that's how Aval gets the junit xml back).
+`meta-e2e-tests/run-tests.sh` is a bash script that invokes the suite and returns a `report.xml` in the `/home/torizon` folder inside the container, which will be a shared volume with the hosts (that's how Aval gets the junit xml back).
 
 One interesting aspect is that Aval uses `fabric`, which echoes back the test runs, so one has real-time information about the test run.
 

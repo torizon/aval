@@ -57,7 +57,7 @@ def main():
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
                     remote.connection.run(
-                        "docker run --privileged --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon leonardoheldattoradex/hoop-target /suites/run-tests.sh --junit"
+                        "docker run --privileged --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon leonardoheldattoradex/meta-integration-tests /suites/run-tests.sh --junit"
                     )
                     logger.info(f"Docker command executed for device {uuid}")
                     remote.connection.get(
@@ -73,12 +73,15 @@ def main():
             finally:
                 database.release_lock(uuid)
                 logger.info(f"Lock released for device {uuid}")
-            break
+            # found a matching device, locked it, tested, unlocked it...
+            if not test_whole_fleet:
+                sys.exit(0)
         else:
             logger.info(f"Failed to acquire lock for device {uuid}")
 
-    # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
-    sys.exit(69)
+    if not test_whole_fleet:
+        # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
+        sys.exit(69)
 
 
 if __name__ == "__main__":

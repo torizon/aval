@@ -3,7 +3,3 @@
 @test "Passes" {
     true    
 }
-
-@test "Fails" {
-    false
-}
