@@ -5,6 +5,7 @@ import database
 
 import logging
 import os
+import sys
 
 RAC_IP = "ras.torizon.io"
 
@@ -69,6 +70,8 @@ def main():
         else:
             logger.info(f"Failed to acquire lock for device {uuid}")
 
+    # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
+    sys.exit(69)
 
 if __name__ == "__main__":
     main()

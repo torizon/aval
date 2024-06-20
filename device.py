@@ -15,53 +15,85 @@ class Device:
         self._cloud_api = cloud_api
         self._uuid = uuid
         self._public_key = public_key
-        self._remote_session_port, self._remote_session_time = (
-            self._create_remote_session()
-        )
-        if not self.is_enough_time_in_session():
-            self.refresh_remote_session()
+        try:
+            self._remote_session_port, self._remote_session_time = (
+                self._create_remote_session()
+            )
+            if not self.is_enough_time_in_session():
+                self.refresh_remote_session()
+        except Exception as e:
+            self._log.error(
+                f"Fail to create remote session for device with uuid {self._uuid}"
+            )
 
     @property
     def remote_session_port(self):
         return self._remote_session_port
 
     def _create_remote_session(self):
-        res = requests.post(
-            API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
-            headers={
-                "Authorization": f"Bearer {self._cloud_api.token}",
-                "accept": "*/*",
-                "Content-Type": "application/json",
-            },
-            json={
-                "public_keys": [
-                    f"{self._public_key}\n",
-                ],
-                "session_duration": "43200s",
-            },
-        )
-
-        if res.status_code != 200 and res.status_code != 409:
-            self._log.error(
-                f"Error: could not create remote session on {self._uuid}, error: {res.status_code}"
+        try:
+            res = requests.post(
+                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+                headers={
+                    "Authorization": f"Bearer {self._cloud_api.token}",
+                    "accept": "*/*",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "public_keys": [
+                        f"{self._public_key}\n",
+                    ],
+                    "session_duration": "43200s",
+                },
             )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None, None
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as errh:
+            error_message = f"Http Error: {errh}"
+        except requests.exceptions.ConnectionError as errc:
+            error_message = f"Error Connecting: {errc}"
+        except requests.exceptions.Timeout as errt:
+            error_message = f"Timeout Error: {errt}"
+        except requests.exceptions.RequestException as err:
+            error_message = f"Oops: Something Else: {err}"
+        else:
+            error_message = None
 
-        res = requests.get(
-            API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
-            headers={
-                "Authorization": f"Bearer {self._cloud_api.token}",
-                "accept": "application/json",
-            },
-        )
+        if error_message:
+            try:
+                self._log.error(json.dumps(res.json(), indent=2))
+            except json.JSONDecodeError as e:
+                self._log.error(f"Error decoding JSON response: {e}")
+            self._log.error(error_message)
+            raise Exception(error_message)
 
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not retrieve remote session on {self._uuid}, error: {res.status_code}"
+        try:
+            res = requests.get(
+                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+                headers={
+                    "Authorization": f"Bearer {self._cloud_api.token}",
+                    "accept": "application/json",
+                },
             )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None, None
+
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as errh:
+            error_message = f"Http Error: {errh}"
+        except requests.exceptions.ConnectionError as errc:
+            error_message = f"Error Connecting: {errc}"
+        except requests.exceptions.Timeout as errt:
+            error_message = f"Timeout Error: {errt}"
+        except requests.exceptions.RequestException as err:
+            error_message = f"Oops: Something Else: {err}"
+        else:
+            error_message = None
+
+        if error_message:
+            try:
+                self._log.error(json.dumps(res.json(), indent=2))
+            except json.JSONDecodeError as e:
+                self._log.error(f"Error decoding JSON response: {e}")
+            self._log.error(error_message)
+            raise Exception(error_message)
 
         self._log.info(
             f'Remote session created for {self._uuid} on port {res.json()["ssh"]["reverse_port"]} expiring at {res.json()["ssh"]["expires_at"]}'
