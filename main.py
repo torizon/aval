@@ -1,7 +1,9 @@
 from cloud import CloudAPI
 from device import Device
 from remote import Remote
+
 import database
+import common
 
 import logging
 import os
@@ -40,7 +42,7 @@ def main():
         possible_duts = cloud.provisioned_devices
     else:
         for device in cloud.provisioned_devices:
-            if soc_udt in device["deviceId"]:
+            if soc_udt == common.parse_device_id(device["deviceId"]):
                 possible_duts.append(device)
 
     for device in possible_duts:

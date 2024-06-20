@@ -1,0 +1,40 @@
+.e2e-test-template:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
+  script:
+    - /usr/local/bin/entrypoint.sh
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+  needs:
+    - unit-test
+
+e2e-test-imx8mp:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8mp"
+
+e2e-test-imx8mm:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8mm"
+
+e2e-test-am62:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "am62"
+
+e2e-test-imx8x:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8x"
+
+e2e-test-imx7:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx7"
+
+e2e-test-imx6:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx6"
