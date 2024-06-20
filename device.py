@@ -47,7 +47,13 @@ class Device:
                 },
             )
             res.raise_for_status()
+            error_message = None
         except requests.exceptions.HTTPError as errh:
+            if res.status_code == 409:
+                self._log.info(
+                    f"409 Conflict: Session already exists, attempting to retrieve existing session."
+                )
+                return self._get_remote_session()
             error_message = f"Http Error: {errh}"
         except requests.exceptions.ConnectionError as errc:
             error_message = f"Error Connecting: {errc}"
@@ -60,12 +66,15 @@ class Device:
 
         if error_message:
             try:
-                self._log.error(json.dumps(res.json(), indent=2))
+                self._log.info(json.dumps(res.json(), indent=2))
             except json.JSONDecodeError as e:
                 self._log.error(f"Error decoding JSON response: {e}")
             self._log.error(error_message)
             raise Exception(error_message)
 
+        return self._get_remote_session()
+
+    def _get_remote_session(self):
         try:
             res = requests.get(
                 API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
