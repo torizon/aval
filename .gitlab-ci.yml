@@ -34,7 +34,7 @@ unit-test:
   needs:
     - container-build
 
-# run against a database deployed by the maintainer. See CODEOWNERS.
+# run against a database/fleet deployed by the maintainer. See CODEOWNERS.
 e2e-test:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
   script:

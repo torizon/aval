@@ -14,6 +14,9 @@ def main():
 
     logger = logging.getLogger(__name__)
 
+    test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
+    test_whole_fleet = test_whole_fleet.lower() in ["true"]
+
     try:
         api_client = os.environ["TORIZON_API_CLIENT_ID"]
         api_secret = os.environ["TORIZON_API_SECRET_ID"]
@@ -33,9 +36,12 @@ def main():
     SOC_UDT="imx8m" TORIZON_VERSION="6.5.0" or TORIZON_VERSION="nightly".
     """
     possible_duts = []
-    for device in cloud.provisioned_devices:
-        if soc_udt in device["deviceId"]:
-            possible_duts.append(device)
+    if test_whole_fleet:
+        possible_duts = cloud.provisioned_devices
+    else:
+        for device in cloud.provisioned_devices:
+            if soc_udt in device["deviceId"]:
+                possible_duts.append(device)
 
     for device in possible_duts:
         uuid = device["deviceUuid"]
@@ -67,11 +73,13 @@ def main():
             finally:
                 database.release_lock(uuid)
                 logger.info(f"Lock released for device {uuid}")
+            break
         else:
             logger.info(f"Failed to acquire lock for device {uuid}")
 
     # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
     sys.exit(69)
+
 
 if __name__ == "__main__":
     main()
