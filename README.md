@@ -5,6 +5,24 @@ More specifically, Aval is used to initialize remote testing frameworks such as 
 
 Aval is meant to be used either locally or from a CI pipeline.
 
+## Usage
+
+Copied straight from `python3 main.py --help`.
+
+```
+usage: main.py [-h] [--report remote-path local-output] command
+
+Run commands on remote devices provisioned on Torizon Cloud.
+
+positional arguments:
+  command               Command to run on target device.
+
+options:
+  -h, --help            show this help message and exit
+  --report remote-path local-output
+                        Copies a file over Remote Access from remote-path from the target device to local-output.
+```
+
 ## Example
 
 An example can be found in the `meta-e2e-tests` folder.
@@ -50,7 +68,7 @@ Possibly useful commands to run it locally:
 
 ```
 # exports variables from `.env` and runs the aval, assuming that the database is up
-env $(cat .env | xargs) python3 main.py
+env $(cat .env | xargs) python3 main.py ...
 ```
 
 ## Aval's Database
@@ -64,7 +82,7 @@ The idea behind it is exploiting transaction atomicity for database operations, 
 Note: you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
 ## Missing features
- - merge multiple junit files into one `report.xml`
+ - Merge multiple junit files into one `report.xml`
  - Missing documentation about how to use it in CI
  - Missing documentation about how to use mountpoints with the source code to make development easier
  - Source and test code is not split at all at this moment, would be a very nice to have

@@ -8,13 +8,30 @@ import common
 import logging
 import os
 import sys
+import argparse
 
 RAC_IP = "ras.torizon.io"
 
 
 def main():
 
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
+
+    parser = argparse.ArgumentParser(
+        description="Run commands on remote devices provisioned on Torizon Cloud."
+    )
+    parser.add_argument(
+        "--report",
+        nargs=2,
+        metavar=("remote-path", "local-output"),
+        help="Copies a file over Remote Access from remote-path from the target device to local-output.",
+    )
+    parser.add_argument(
+        "command", type=str, help="Command to run on target device."
+    )
+
+    args = parser.parse_args()
 
     test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
     test_whole_fleet = test_whole_fleet.lower() in ["true"]
@@ -45,6 +62,10 @@ def main():
             if soc_udt == common.parse_device_id(device["deviceId"]):
                 possible_duts.append(device)
 
+    logger.info("Possible devices to send tests to:")
+    logger.info(possible_duts)
+
+    logger.info("Attempting to lock a device")
     for device in possible_duts:
         uuid = device["deviceUuid"]
         if not database.device_exists(uuid):
@@ -58,13 +79,15 @@ def main():
                 remote = Remote(dut, RAC_IP, device_password)
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
-                    remote.connection.run(
-                        "docker run --privileged --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon leonardoheldattoradex/meta-integration-tests /suites/run-tests.sh --junit"
-                    )
+                    remote.connection.run(args.command)
                     logger.info(f"Docker command executed for device {uuid}")
-                    remote.connection.get(
-                        "/home/torizon/report.xml", "report.xml"
-                    )
+                    if args.report:
+                        remote_path = args.report[0]
+                        local_output = args.report[1]
+                        logger.info(
+                            f"Copying report file from {remote_path} to {local_output}"
+                        )
+                        remote.connection.get(remote_path, local_output)
                     logger.info(f"Report retrieved for device {uuid}")
                 else:
                     logger.error(f"Connection test failed for device {uuid}")
