@@ -78,7 +78,7 @@ def main():
             database.create_device(uuid)
             logger.info(f"Created new device entry for {uuid}")
 
-        if database.acquire_lock(uuid):
+        if database.try_until_locked(uuid):
             logger.info(f"Lock acquired for device {uuid}")
             try:
                 dut = Device(cloud, device["deviceUuid"], public_key)

@@ -1,6 +1,10 @@
 import os
+import time
 import psycopg2
+import logging
 from contextlib import contextmanager
+
+logger = logging.getLogger(__name__)
 
 DB_PARAMS = {
     "dbname": os.environ["POSTGRES_DB"],
@@ -65,3 +69,15 @@ def create_device(device_uuid):
                 (device_uuid,),
             )
             conn.commit()
+
+
+def try_until_locked(device_uuid, interval=10):
+    while True:
+        if acquire_lock(device_uuid):
+            logger.info(f"Device {device_uuid} successfully locked.")
+            return True
+        else:
+            logger.info(
+                f"Device {device_uuid} is already locked. Retrying in {interval} seconds..."
+            )
+            time.sleep(interval)
