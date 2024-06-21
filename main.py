@@ -54,6 +54,8 @@ def main():
     For example, the user may want to invoke the program passing a flag such as
     SOC_UDT="imx8m" TORIZON_VERSION="6.5.0" or TORIZON_VERSION="nightly".
     """
+    logger.info(f"Finding possible devices to send tests to...")
+    logger.info(f"Matching configuration: SOC {soc_udt}")
     possible_duts = []
     if test_whole_fleet:
         possible_duts = cloud.provisioned_devices
@@ -62,8 +64,12 @@ def main():
             if soc_udt == common.parse_device_id(device["deviceId"]):
                 possible_duts.append(device)
 
-    logger.info("Possible devices to send tests to:")
-    logger.info(possible_duts)
+    if not possible_duts:
+        logger.error("Couldn't find any possible devices to send tests to")
+        sys.exit(1)
+    else:
+        logger.info("Found these devices to send tests to:")
+        logger.info(possible_duts)
 
     logger.info("Attempting to lock a device")
     for device in possible_duts:
