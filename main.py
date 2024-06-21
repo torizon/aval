@@ -86,7 +86,9 @@ def main():
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
                     remote.connection.run(args.command)
-                    logger.info(f"Docker command executed for device {uuid}")
+                    logger.info(
+                        f"Command {args.command} executed for device {uuid}"
+                    )
                     if args.report:
                         remote_path = args.report[0]
                         local_output = args.report[1]
