@@ -33,6 +33,6 @@ RUN apt-get update \
   && apt-get autoremove \
   && rm -rf /var/lib/apt/lists/*
 
-COPY ./suites /suites
+COPY ./e2e-tests/suites /suites
 
 WORKDIR suites

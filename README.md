@@ -82,7 +82,6 @@ The idea behind it is exploiting transaction atomicity for database operations, 
 Note: you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
 ## Missing features
- - Merge multiple junit files into one `report.xml`
  - Missing documentation about how to use it in CI
  - Missing documentation about how to use mountpoints with the source code to make development easier
  - Source and test code is not split at all at this moment, would be a very nice to have

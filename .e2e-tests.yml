@@ -1,9 +1,9 @@
 .e2e-test-template:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
   script:
-    - /usr/local/bin/entrypoint.sh "docker run --privileged --pid host
+    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
-      leonardoheldattoradex/meta-integration-tests /suites/run-tests.sh --junit"
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests /suites/run-tests.sh"
       --report /home/torizon/report.xml report.xml
   artifacts:
     when: always

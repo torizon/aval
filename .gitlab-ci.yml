@@ -6,7 +6,7 @@ lint:
   script:
     - black --check --verbose --line-length 80 -- *.py
 
-container-build:
+aval-container-build:
   image: docker:dind
   services:
     - name: docker:dind
@@ -21,7 +21,35 @@ container-build:
     - docker buildx create --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
     - docker buildx inspect --bootstrap
     - docker run --privileged --rm ${TORADEX_INTERNAL_DOCKERHUB_CACHE}/tonistiigi/binfmt --install arm64,arm
-    - docker buildx build --cache-from ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev --progress=plain --push --platform linux/arm64/v8,linux/amd64 -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev .
+    - docker buildx build
+      --cache-from ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
+      --progress=plain
+      --push
+      --platform linux/arm64/v8,linux/amd64
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev .
+
+e2e-tests-container-build:
+  image: docker:dind
+  services:
+    - name: docker:dind
+  variables:
+    TORADEX_INTERNAL_DOCKERHUB_CACHE: "artifactory-horw.int.toradex.com/dockerhub-proxy-horw"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx create --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
+    - docker buildx inspect --bootstrap
+    - docker run --privileged --rm ${TORADEX_INTERNAL_DOCKERHUB_CACHE}/tonistiigi/binfmt --install arm64,arm
+    - docker buildx build
+      --cache-from ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests
+      --progress=plain
+      --file e2e-tests/Dockerfile
+      --push
+      --platform linux/arm/v7,linux/arm64/v8,linux/amd64
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests .
 
 unit-test:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
@@ -35,4 +63,4 @@ unit-test:
         coverage_format: cobertura
         path: coverage.xml
   needs:
-    - container-build
+    - aval-container-build
