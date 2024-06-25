@@ -4,3 +4,4 @@ __pycache__/
 aval/
 *html
 .env
+.idea
