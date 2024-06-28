@@ -63,17 +63,17 @@ def main():
         for device in cloud.provisioned_devices:
             if soc_udt == common.parse_device_id(device["deviceId"]):
                 possible_duts.append(device)
-
     if not possible_duts:
         logger.error("Couldn't find any possible devices to send tests to")
         sys.exit(1)
     else:
         logger.info("Found these devices to send tests to:")
-        logger.info(possible_duts)
+        logger.info(common.pretty_print_devices(possible_duts))
 
     logger.info("Attempting to lock a device")
     for device in possible_duts:
         uuid = device["deviceUuid"]
+        hardware_id = common.parse_hardware_id(device["deviceId"])
         if not database.device_exists(uuid):
             database.create_device(uuid)
             logger.info(f"Created new device entry for {uuid}")
@@ -81,7 +81,11 @@ def main():
         if database.try_until_locked(uuid):
             logger.info(f"Lock acquired for device {uuid}")
             try:
-                dut = Device(cloud, device["deviceUuid"], public_key)
+                dut = Device(
+                    cloud, device["deviceUuid"], hardware_id, public_key
+                )
+                if not dut.os_is_latest_nightly():
+                    dut.update_latest_nightly()
                 remote = Remote(dut, RAC_IP, device_password)
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
