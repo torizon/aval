@@ -39,9 +39,7 @@ class CloudAPI:
 
         tokens.append(res.json()["access_token"])
 
-        if tokens[0] == None:
-            self._log.info("No API info specified for the new Cloud account")
-        self._log.info("API tokens generated.")
+        self._log.debug("API tokens generated.")
         return tuple(tokens)
 
     def _get_provisioned_devices(self):
@@ -62,8 +60,39 @@ class CloudAPI:
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json()["values"])
-        self._log.info("Got provisioned devices on platform")
+        self._log.debug("Got provisioned devices on platform")
         return res.json()["values"]
+
+    def _refresh_delegation(self, delegation):
+        try:
+            res = requests.get(
+                API_BASE_URL + f"/packages_external/refresh/{delegation}",
+                headers={
+                    "Authorization": f"Bearer {self.token}",
+                    "accept": "*/*",
+                    "Content-Type": "application/json",
+                },
+            )
+            res.raise_for_status()
+            error_message = None
+        except requests.exceptions.HTTPError as errh:
+            error_message = f"Http Error: {errh}"
+        except requests.exceptions.ConnectionError as errc:
+            error_message = f"Error Connecting: {errc}"
+        except requests.exceptions.Timeout as errt:
+            error_message = f"Timeout Error: {errt}"
+        except requests.exceptions.RequestException as err:
+            error_message = f"Oops: Something Else: {err}"
+        else:
+            error_message = None
+
+        if error_message:
+            try:
+                self._log.info(json.dumps(res.json(), indent=2))
+            except json.JSONDecodeError as e:
+                self._log.error(f"Error decoding JSON res: {e}")
+            self._log.error(error_message)
+            raise Exception(error_message)
 
     def get_latest_build(self, release_type, hardware_id):
         # upstream images get a different namespace for some reason now long forgotten.
@@ -74,7 +103,7 @@ class CloudAPI:
 
         url = (
             API_BASE_URL
-            + f"/packages?nameContains={name_contains}&hardwareIds={hardware_id}&sortBy=Filename"
+            + f"/packages?nameContains={name_contains}&hardwareIds={hardware_id}&sortBy=Filename&sortDirection=Desc"
         )
 
         res = requests.get(
@@ -94,7 +123,6 @@ class CloudAPI:
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json()["values"])
-        self._log.info("Got package metadata")
 
         latest_build = next(
             (item["packageId"] for item in res.json().get("values", [])), None

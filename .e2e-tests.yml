@@ -1,5 +1,7 @@
 .e2e-test-template:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
   script:
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
@@ -12,32 +14,74 @@
   needs:
     - unit-test
 
-e2e-test-imx8mp:
+e2e-test-imx8mp-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "imx8mp"
+    TARGET_BUILD_TYPE: "nightly"
 
-e2e-test-imx8mm:
+e2e-test-imx8mm-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "imx8mm"
+    TARGET_BUILD_TYPE: "nightly"
 
-e2e-test-am62:
+e2e-test-am62-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "am62"
+    TARGET_BUILD_TYPE: "nightly"
 
-e2e-test-imx8x:
+e2e-test-imx8x-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "imx8x"
+    TARGET_BUILD_TYPE: "nightly"
 
-e2e-test-imx7:
+e2e-test-imx7-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "imx7"
+    TARGET_BUILD_TYPE: "nightly"
 
-e2e-test-imx6:
+e2e-test-imx6-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "imx6"
+    TARGET_BUILD_TYPE: "nightly"
+
+e2e-test-imx8mp-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8mp"
+    TARGET_BUILD_TYPE: "release"
+
+e2e-test-imx8mm-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8mm"
+    TARGET_BUILD_TYPE: "release"
+
+e2e-test-am62-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "am62"
+    TARGET_BUILD_TYPE: "release"
+
+e2e-test-imx8x-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx8x"
+    TARGET_BUILD_TYPE: "release"
+
+e2e-test-imx7-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx7"
+    TARGET_BUILD_TYPE: "release"
+
+e2e-test-imx6-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "imx6"
+    TARGET_BUILD_TYPE: "release"

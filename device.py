@@ -19,16 +19,16 @@ class Device:
         self._uuid = uuid
         self._hardware_id = hardware_id
         self._public_key = public_key
+        self._current_build = None
+        self._latest_build = None
+        self._remote_session_port = None
+        self._remote_session_time = None
 
         logging.debug(
             f"Initializing Device object {self._hardware_id} for {self._uuid}"
         )
 
         try:
-            self._current_build = self.get_current_build()
-            self._latest_build = self._cloud_api.get_latest_build(
-                release_type="nightly", hardware_id=self._hardware_id
-            )
             self._remote_session_port, self._remote_session_time = (
                 self._create_remote_session()
             )
@@ -122,10 +122,6 @@ class Device:
             res.json()["ssh"]["expires_at"]
         )
 
-    def get_remote_port(self):
-        self._log.debug(self._remote_session_port)
-        return self._remote_session_port
-
     def is_enough_time_in_session(self, time=60 * 30):
         remaining_time = (
             self._remote_session_time
@@ -211,18 +207,33 @@ class Device:
 
         res.raise_for_status()
 
-    def os_is_latest_nightly(self):
-        if self._current_build == self._latest_build:
+    def is_os_updated_to_latest(self, release_type):
+        current_build = self.get_current_build()
+
+        self._latest_build = self._cloud_api.get_latest_build(
+            release_type=release_type, hardware_id=self._hardware_id
+        )
+
+        if current_build == self._latest_build:
             logging.info(
-                f"Device {self._uuid} is already on latest nightly {self._current_build}"
+                f"Device {self._uuid} is already on latest build {current_build}"
             )
             return True
-        logging.info(
-            f"Device {self._uuid} is on {self._current_build}, not {self._latest_build}"
-        )
         return False
 
-    def update_latest_nightly(self):
+    def update_to_latest(self, target_build_type):
+        logging.info(f"Refreshing {target_build_type} delegation")
+        if target_build_type == "nightly":
+            self._cloud_api._refresh_delegation("tdx-nightly")
+        elif target_build_type == "release":
+            self._cloud_api._refresh_delegation("tdx-quarterly")
+        else:
+            """
+            FIXME: allow refreshing custom delegations.
+            This is not needed right now, but if customers ever need it, it's
+            simple enough to implement.
+            """
+            raise Exception("Found no delegation to refresh")
         logging.info(f"Launching update to {self._latest_build}")
         self.launch_update(self._latest_build)
         logging.info("Waiting until update is complete...")

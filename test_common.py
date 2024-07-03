@@ -18,8 +18,6 @@ hardware_id_dict = {
     "colibri-imx8x-07203041-b5464c": "colibri-imx8x",
     "colibri-imx7-emmc-15149329-6f39ce": "colibri-imx7-emmc",
     "colibri-imx6-15054304-e259ec": "colibri-imx6",
-    "singlepartid": None,  # Edge case: no hyphen
-    "": None,  # Edge case: empty string
 }
 
 

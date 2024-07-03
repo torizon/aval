@@ -42,20 +42,16 @@ def main():
         public_key = os.environ["PUBLIC_KEY"]
         device_password = os.environ["DEVICE_PASSWORD"]
         soc_udt = os.environ["SOC_UDT"]
+        target_build_type = os.environ["TARGET_BUILD_TYPE"]
     except KeyError as e:
         raise KeyError(f"Missing environment variable: {e}")
 
     cloud = CloudAPI(api_client=api_client, api_secret=api_secret)
 
-    """
-    TODO: we possibly also want to grab some current information about the
-    software running in the system so we can filter against a specific release
-    of Torizon.
-    For example, the user may want to invoke the program passing a flag such as
-    SOC_UDT="imx8m" TORIZON_VERSION="6.5.0" or TORIZON_VERSION="nightly".
-    """
     logger.info(f"Finding possible devices to send tests to...")
-    logger.info(f"Matching configuration: SOC {soc_udt}")
+    logger.info(
+        f"Matching configuration: SOC {soc_udt}, BUILD TYPE {target_build_type}"
+    )
     possible_duts = []
     if test_whole_fleet:
         possible_duts = cloud.provisioned_devices
@@ -84,8 +80,8 @@ def main():
                 dut = Device(
                     cloud, device["deviceUuid"], hardware_id, public_key
                 )
-                if not dut.os_is_latest_nightly():
-                    dut.update_latest_nightly()
+                if not dut.is_os_updated_to_latest(target_build_type):
+                    dut.update_to_latest(target_build_type)
                 remote = Remote(dut, RAC_IP, device_password)
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
