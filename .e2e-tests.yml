@@ -6,7 +6,7 @@
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests /suites/run-tests.sh"
-      --report /home/torizon/report.xml report.xml
+      --report /home/torizon/report.xml report.xml --before "docker system prune --all"
   artifacts:
     when: always
     reports:

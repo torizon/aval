@@ -31,6 +31,12 @@ def main():
         "command", type=str, help="Command to run on target device."
     )
 
+    parser.add_argument(
+        "--before",
+        type=str,
+        help="Command to run before the main command on target device.",
+    )
+
     args = parser.parse_args()
 
     test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
@@ -85,6 +91,8 @@ def main():
                 remote = Remote(dut, RAC_IP, device_password)
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
+                    if args.before:
+                        remote.connection.run(args.before)
                     remote.connection.run(args.command)
                     logger.info(
                         f"Command {args.command} executed for device {uuid}"
