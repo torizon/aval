@@ -10,7 +10,7 @@ Aval is meant to be used either locally or from a CI pipeline.
 Copied straight from `python3 main.py --help`.
 
 ```
-usage: main.py [-h] [--report remote-path local-output] command
+usage: main.py [-h] [--report remote-path local-output] [--before BEFORE] command
 
 Run commands on remote devices provisioned on Torizon Cloud.
 
@@ -21,6 +21,7 @@ options:
   -h, --help            show this help message and exit
   --report remote-path local-output
                         Copies a file over Remote Access from remote-path from the target device to local-output.
+  --before BEFORE       Command to run before the main command on target device.
 ```
 
 ## Example
@@ -53,23 +54,22 @@ An explanation of each variable follows:
 - `PUBLIC_KEY`, `PRIVATE_KEY` are the ones registered in the Torizon Cloud.
 - `DEVICE_PASSWORD` is the actual device password for the devices. We do not support having different password for each of the devices.
 - `SOC_UDT` (System-on-Chip Under Test) is a variable to match against the `Device ID` field under the Device Information tab under the Hardware section. As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb` will match against `SOC_UDT=imx8`.
+- `AVAL_VERBOSE`: makes Aval loud.
 
 Then just `docker-compose up --build`.
 
 ## Developing 
 
-To run the unit tests, you can do it locally or also use the container using `coverage`, overriding the entrypoint:
+The easiest way to develop is setting up a mountpoint inside the Python container like so
 
 ```
-docker run --entrypoint coverage aval run -m unittest discover -v -s . -p 'test_*.py'
+$ docker run -it -v $(pwd):/aval python:latest bash
+# pip install -r requirements.txt
+# eval $(cat .env) python3 main.py ... # or `./entrypoint.sh ...`
+# coverage run -m unittest discover -v -s . -p 'test_*.py' # runs unit tests
 ```
 
-Possibly useful commands to run it locally:
-
-```
-# exports variables from `.env` and runs the aval, assuming that the database is up
-env $(cat .env | xargs) python3 main.py ...
-```
+Of course this assumes you can access the database (see the `docker-compose.yml` file for help with that).
 
 ## Aval's Database
 
@@ -79,10 +79,11 @@ The idea behind it is exploiting transaction atomicity for database operations, 
 
 ## Using it in CI
 
+We have end-to-end tests that mimic exactly how you should run this in CI. Please take a look at the `.gitlab-ci.yml` and `.e2e-tests.yml` files.
+
 Note: you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
 ## Missing features
- - Missing documentation about how to use it in CI
  - Missing documentation about how to use mountpoints with the source code to make development easier
  - Source and test code is not split at all at this moment, would be a very nice to have
 
