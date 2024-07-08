@@ -2,6 +2,7 @@
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
   variables:
     TARGET_BUILD_TYPE: "nightly"
+    AVAL_VERBOSE: "true"
   script:
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon

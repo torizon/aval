@@ -15,7 +15,13 @@ RAC_IP = "ras.torizon.io"
 
 def main():
 
-    logging.basicConfig(level=logging.INFO)
+    if os.getenv("AVAL_VERBOSE"):
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+
+    logging.basicConfig(level=logging_level)
+
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser(
