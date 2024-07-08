@@ -3,6 +3,7 @@ import requests
 import logging
 import dateutil
 import json
+import time
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
 
@@ -63,36 +64,48 @@ class CloudAPI:
         self._log.debug("Got provisioned devices on platform")
         return res.json()["values"]
 
-    def _refresh_delegation(self, delegation):
-        try:
-            res = requests.get(
-                API_BASE_URL + f"/packages_external/refresh/{delegation}",
-                headers={
-                    "Authorization": f"Bearer {self.token}",
-                    "accept": "*/*",
-                    "Content-Type": "application/json",
-                },
-            )
-            res.raise_for_status()
-            error_message = None
-        except requests.exceptions.HTTPError as errh:
-            error_message = f"Http Error: {errh}"
-        except requests.exceptions.ConnectionError as errc:
-            error_message = f"Error Connecting: {errc}"
-        except requests.exceptions.Timeout as errt:
-            error_message = f"Timeout Error: {errt}"
-        except requests.exceptions.RequestException as err:
-            error_message = f"Oops: Something Else: {err}"
-        else:
-            error_message = None
-
-        if error_message:
+    def _refresh_delegation(
+        self, delegation, max_retries=3, backoff_factor=1.0
+    ):
+        for attempt in range(max_retries):
             try:
-                self._log.info(json.dumps(res.json(), indent=2))
-            except json.JSONDecodeError as e:
-                self._log.error(f"Error decoding JSON res: {e}")
-            self._log.error(error_message)
-            raise Exception(error_message)
+                res = requests.get(
+                    API_BASE_URL + f"/packages_external/refresh/{delegation}",
+                    headers={
+                        "Authorization": f"Bearer {self.token}",
+                        "accept": "*/*",
+                        "Content-Type": "application/json",
+                    },
+                )
+                res.raise_for_status()
+                return
+            except requests.exceptions.HTTPError as errh:
+                if res.status_code == 503:
+                    self._log.warning(
+                        f"503 Service Unavailable, retrying... (attempt {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(backoff_factor * (2**attempt))
+                    continue
+                else:
+                    error_message = f"HTTP Error: {errh}"
+            except requests.exceptions.ConnectionError as errc:
+                error_message = f"Error Connecting: {errc}"
+                break
+            except requests.exceptions.Timeout as errt:
+                error_message = f"Timeout Error: {errt}"
+                break
+            except requests.exceptions.RequestException as err:
+                error_message = f"Oops: Something Else: {err}"
+                break
+        else:
+            error_message = "Max retries exceeded"
+
+        self._log.error(error_message)
+        try:
+            self._log.info(json.dumps(res.json(), indent=2))
+        except json.JSONDecodeError as e:
+            self._log.error(f"Error decoding JSON response: {e}")
+        raise Exception(error_message)
 
     def get_latest_build(self, release_type, hardware_id):
         # upstream images get a different namespace for some reason now long forgotten.
