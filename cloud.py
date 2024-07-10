@@ -65,7 +65,7 @@ class CloudAPI:
         return res.json()["values"]
 
     def _refresh_delegation(
-        self, delegation, max_retries=3, backoff_factor=1.0
+        self, delegation, max_retries=3, backoff_factor=10.0
     ):
         for attempt in range(max_retries):
             try:
