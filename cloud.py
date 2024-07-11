@@ -23,7 +23,6 @@ class CloudAPI:
         tokens = []
         res = requests.post(
             "https://kc.torizon.io/auth/realms/ota-users/protocol/openid-connect/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
             data={
                 "grant_type": "client_credentials",
                 "client_id": self.api_client,
