@@ -5,6 +5,8 @@ import dateutil
 import json
 import time
 
+from http_wrapper import endpoint_call
+
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
 
 
@@ -21,21 +23,16 @@ class CloudAPI:
 
     def _get_bearer_token(self):
         tokens = []
-        res = requests.post(
-            "https://kc.torizon.io/auth/realms/ota-users/protocol/openid-connect/token",
-            data={
+        res = endpoint_call(
+            url="https://kc.torizon.io/auth/realms/ota-users/protocol/openid-connect/token",
+            request_type="post",
+            body={
                 "grant_type": "client_credentials",
                 "client_id": self.api_client,
                 "client_secret": self.api_secret,
             },
+            headers=None,
         )
-
-        if res.status_code != 200:
-            self._log.error(
-                f"Could not retrieve API token, error: {res.status_code}"
-            )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None, None
 
         tokens.append(res.json()["access_token"])
 
@@ -43,20 +40,15 @@ class CloudAPI:
         return tuple(tokens)
 
     def _get_provisioned_devices(self):
-        res = requests.get(
-            API_BASE_URL + "/devices",
+        res = endpoint_call(
+            url=API_BASE_URL + "/devices",
+            request_type="get",
+            body=None,
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
         )
-
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not retrieve provisioned devices, error: {res.status_code}"
-            )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json()["values"])
@@ -75,20 +67,15 @@ class CloudAPI:
             + f"/packages?nameContains={name_contains}&hardwareIds={hardware_id}&sortBy=Filename&sortDirection=Desc"
         )
 
-        res = requests.get(
+        res = endpoint_call(
             url,
+            request_type="get",
+            body=None,
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
         )
-
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not retrieve package metadata, error: {res.status_code}"
-            )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json()["values"])
@@ -105,20 +92,15 @@ class CloudAPI:
             )
 
     def get_package_metadata_for_device(self, uuid):
-        res = requests.get(
-            API_BASE_URL + f"/devices/packages?deviceUuid={uuid}",
+        res = endpoint_call(
+            url=API_BASE_URL + f"/devices/packages?deviceUuid={uuid}",
+            request_type="get",
+            body=None,
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
         )
-
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not retrieve package metadata for device {uuid}, error: {res.status_code}"
-            )
-            self._log.error(json.dumps(res.json(), indent=2))
-            return None
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json()["values"])
@@ -130,20 +112,15 @@ class CloudAPI:
             return item.get("inFlight")
 
     def get_assigment_status_for_device(self, uuid):
-        res = requests.get(
-            f"{API_BASE_URL}/devices/uptane/{uuid}/assignment",
+        res = endpoint_call(
+            url=f"{API_BASE_URL}/devices/uptane/{uuid}/assignment",
+            request_type="get",
+            body=None,
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
         )
-
-        if res.status_code != 200:
-            self._log.error(
-                f"Error: could not retrieve update assignment status for device {uuid}, error: {res.status_code}"
-            )
-            self._log.error(res)
-            return None
 
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug(res.json())

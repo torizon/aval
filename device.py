@@ -11,6 +11,8 @@ from cloud import CloudAPI
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
 
+from http_wrapper import endpoint_call
+
 
 class Device:
     def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, public_key):
@@ -43,77 +45,46 @@ class Device:
 
     def _create_remote_session(self):
         try:
-            res = requests.post(
-                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+            res = endpoint_call(
+                url=API_BASE_URL
+                + f"/remote-access/device/{self._uuid}/sessions",
+                request_type="post",
+                body=json.dumps(
+                    {
+                        "public_keys": [
+                            f"{self._public_key}\n",
+                        ],
+                        "session_duration": "43200s",
+                    }
+                ),
                 headers={
                     "Authorization": f"Bearer {self._cloud_api.token}",
                     "accept": "*/*",
                     "Content-Type": "application/json",
                 },
-                json={
-                    "public_keys": [
-                        f"{self._public_key}\n",
-                    ],
-                    "session_duration": "43200s",
-                },
             )
-            res.raise_for_status()
-            error_message = None
-        except requests.exceptions.HTTPError as errh:
-            if res.status_code == 409:
+
+        except Exception as e:
+            if res and res.status_code == 409:
                 self._log.info(
                     f"409 Conflict: Session already exists, attempting to retrieve existing session."
                 )
                 return self._get_remote_session()
-            error_message = f"Http Error: {errh}"
-        except requests.exceptions.ConnectionError as errc:
-            error_message = f"Error Connecting: {errc}"
-        except requests.exceptions.Timeout as errt:
-            error_message = f"Timeout Error: {errt}"
-        except requests.exceptions.RequestException as err:
-            error_message = f"Oops: Something Else: {err}"
-        else:
-            error_message = None
-
-        if error_message:
-            try:
-                self._log.info(json.dumps(res.json(), indent=2))
-            except json.JSONDecodeError as e:
-                self._log.error(f"Error decoding JSON res: {e}")
-            self._log.error(error_message)
-            raise Exception(error_message)
 
         return self._get_remote_session()
 
     def _get_remote_session(self):
-        try:
-            res = requests.get(
-                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
-                headers={
-                    "Authorization": f"Bearer {self._cloud_api.token}",
-                    "accept": "application/json",
-                },
-            )
-
-            res.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            error_message = f"Http Error: {errh}"
-        except requests.exceptions.ConnectionError as errc:
-            error_message = f"Error Connecting: {errc}"
-        except requests.exceptions.Timeout as errt:
-            error_message = f"Timeout Error: {errt}"
-        except requests.exceptions.RequestException as err:
-            error_message = f"Oops: Something Else: {err}"
-        else:
-            error_message = None
-
-        if error_message:
-            try:
-                self._log.error(json.dumps(res.json(), indent=2))
-            except json.JSONDecodeError as e:
-                self._log.error(f"Error decoding JSON res: {e}")
-            self._log.error(error_message)
-            raise Exception(error_message)
+        res = endpoint_call(
+            url=API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+            request_type="get",
+            body=None,
+            headers={
+                "Authorization": f"Bearer {self._cloud_api.token}",
+                "accept": "application/json",
+            },
+        )
+        if res is None:
+            raise Exception("Failed to get remote session")
 
         self._log.info(
             f'Remote session created for {self._uuid} on port {res.json()["ssh"]["reverse_port"]} expiring at {res.json()["ssh"]["expires_at"]}'
@@ -137,19 +108,16 @@ class Device:
 
     def refresh_remote_session(self):
         try:
-            res = requests.delete(
-                API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+            res = endpoint_call(
+                url=API_BASE_URL
+                + f"/remote-access/device/{self._uuid}/sessions",
+                request_type="delete",
+                body=None,
                 headers={
                     "Authorization": f"Bearer {self._cloud_api.token}",
                     "accept": "*/*",
                 },
             )
-            if res.status_code != 200:
-                self._log.error(
-                    f"Error: could not delete remote session on {self._uuid}, error: {res.status_code}"
-                )
-                self._log.error(json.dumps(res.json(), indent=2))
-                return
 
             self._log.info("Remote session deleted")
             self._remote_session_port, self._remote_session_time = (
@@ -192,8 +160,11 @@ class Device:
             "devices": [self._uuid],
         }
 
-        res = requests.post(
-            API_BASE_URL + "/updates", headers=headers, json=data
+        res = endpoint_call(
+            url=API_BASE_URL + "/updates",
+            request_type="post",
+            body=json.dumps(data),
+            headers=headers,
         )
 
         # FIXME: currently a bug on the Cloud side. Returns 201 when succesfull.
