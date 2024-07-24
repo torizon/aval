@@ -63,7 +63,7 @@ Then just `docker-compose up --build`.
 The easiest way to develop is setting up a mountpoint inside the Python container like so
 
 ```
-$ docker run -it -v $(pwd):/aval python:latest bash
+$ docker run -it -v $(pwd):/aval --workdir=/aval python:latest bash
 # pip install -r requirements.txt
 # eval $(cat .env) python3 main.py ... # or `./entrypoint.sh ...`
 # coverage run -m unittest discover -v -s . -p 'test_*.py' # runs unit tests
