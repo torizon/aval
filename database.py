@@ -71,8 +71,8 @@ def create_device(device_uuid):
             conn.commit()
 
 
-def try_until_locked(device_uuid, interval=10):
-    while True:
+def try_until_locked(device_uuid, interval=30, sleep=180):
+    while interval > 0:
         if acquire_lock(device_uuid):
             logger.info(f"Device {device_uuid} successfully locked.")
             return True
@@ -80,4 +80,6 @@ def try_until_locked(device_uuid, interval=10):
             logger.info(
                 f"Device {device_uuid} is already locked. Retrying in {interval} seconds..."
             )
-            time.sleep(interval)
+            time.sleep(sleep)
+            interval = interval - 1
+    raise Exception(f"Wasn't able to lock the device {device_uuid} in time. :(")
