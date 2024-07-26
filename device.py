@@ -31,11 +31,11 @@ class Device:
         )
 
         try:
+            if not self.is_enough_time_in_session():
+                self.refresh_remote_session()
             self._remote_session_port, self._remote_session_time = (
                 self._create_remote_session()
             )
-            if not self.is_enough_time_in_session():
-                self.refresh_remote_session()
         except Exception as e:
             self._log.error(f"{e}")
 
@@ -94,6 +94,9 @@ class Device:
         )
 
     def is_enough_time_in_session(self, time=60 * 30):
+        if not self._remote_session_time:
+            self._log.debug("Session expired or not enough time remaining")
+            return False
         remaining_time = (
             self._remote_session_time
             - datetime.datetime.now().astimezone(datetime.timezone.utc)
