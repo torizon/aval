@@ -14,13 +14,16 @@ RAC_IP = "ras.torizon.io"
 
 
 def main():
-
     if os.getenv("AVAL_VERBOSE"):
         logging_level = logging.DEBUG
     else:
         logging_level = logging.INFO
 
-    logging.basicConfig(level=logging_level)
+    logging.basicConfig(
+        level=logging_level,
+        format="%(levelname)s - %(asctime)s - File: %(filename)s, Line: %(lineno)d -  %(message)s",
+        datefmt="%H:%M:%S",
+    )
 
     logger = logging.getLogger(__name__)
 
