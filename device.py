@@ -49,18 +49,17 @@ class Device:
                 url=API_BASE_URL
                 + f"/remote-access/device/{self._uuid}/sessions",
                 request_type="post",
-                body=json.dumps(
-                    {
-                        "public_keys": [
-                            f"{self._public_key}\n",
-                        ],
-                        "session_duration": "43200s",
-                    }
-                ),
+                body=None,
                 headers={
                     "Authorization": f"Bearer {self._cloud_api.token}",
                     "accept": "*/*",
                     "Content-Type": "application/json",
+                },
+                json={
+                    "public_keys": [
+                        f"{self._public_key}\n",
+                    ],
+                    "session_duration": "43200s",
                 },
             )
 
@@ -82,6 +81,7 @@ class Device:
                 "Authorization": f"Bearer {self._cloud_api.token}",
                 "accept": "application/json",
             },
+            json=None,
         )
         if res is None:
             raise Exception("Failed to get remote session")
@@ -166,8 +166,9 @@ class Device:
         res = endpoint_call(
             url=API_BASE_URL + "/updates",
             request_type="post",
-            body=json.dumps(data),
+            body=None,
             headers=headers,
+            json=data,
         )
 
         # FIXME: currently a bug on the Cloud side. Returns 201 when succesfull.
