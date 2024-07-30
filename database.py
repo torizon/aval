@@ -78,7 +78,7 @@ def try_until_locked(device_uuid, interval=30, sleep=180):
             return True
         else:
             logger.info(
-                f"Device {device_uuid} is already locked. Retrying in {interval} seconds..."
+                f"Device {device_uuid} is already locked. Retrying in {sleep} seconds..."
             )
             time.sleep(sleep)
             interval = interval - 1
