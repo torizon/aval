@@ -129,6 +129,7 @@ def main():
                 logger.error(
                     f"An error occurred while processing device {uuid}: {e}"
                 )
+                sys.exit(1)
             finally:
                 database.release_lock(uuid)
                 logger.info(f"Lock released for device {uuid}")
@@ -137,6 +138,7 @@ def main():
                 sys.exit(0)
         else:
             logger.info(f"Failed to acquire lock for device {uuid}")
+            sys.exit(1)
 
     if not test_whole_fleet:
         # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
