@@ -23,7 +23,7 @@ class Remote:
             },
         )
 
-    def test_connection(self):
+    def test_connection(self, sleep_time=3):
         for tries in range(5):
             try:
                 res = self.connection.run("true", warn=True, hide=True)
@@ -39,7 +39,7 @@ class Remote:
                     f"Exception occurred while testing remote connection on try {tries}: {str(e)}"
                 )
 
-            time.sleep(3 * (tries + 1))
+            time.sleep(sleep_time * (0 + 1))
 
         self._logger.error("Remote connection test failed")
         return False
