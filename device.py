@@ -18,9 +18,7 @@ class Device:
     def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, public_key):
         self._log = logging.getLogger(__name__)
 
-        logging.debug(
-            f"Initializing Device object {self._hardware_id} for {self._uuid}"
-        )
+        logging.debug(f"Initializing Device object {hardware_id} for {uuid}")
 
         self._cloud_api = cloud_api
         self._uuid = uuid
@@ -32,10 +30,6 @@ class Device:
 
         self.remote_session_ip = None
         self.remote_session_port = None
-
-    @property
-    def remote_session_port(self):
-        return self.remote_session_port
 
     def setup_usual_ssh_session(self):
         network_info = self._get_network_info()

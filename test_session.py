@@ -33,17 +33,12 @@ class TestDeviceInitialization(unittest.TestCase):
             public_key="test-public-key",
         )
 
-        mock_refresh_remote_session.assert_called_once()
+        mock_refresh_remote_session.assert_not_called()
 
-        mock_create_remote_session.assert_called_once()
+        mock_create_remote_session.assert_not_called()
 
-        self.assertEqual(device.remote_session_port, 1234)
-        self.assertEqual(
-            device._remote_session_time,
-            datetime.datetime(
-                2024, 7, 26, 0, 0, 0, tzinfo=datetime.timezone.utc
-            ),
-        )
+        self.assertEqual(device.remote_session_port, None)
+        self.assertEqual(device._remote_session_time, None)
 
     @patch("device.Device._create_remote_session")
     @patch("device.Device.refresh_remote_session")
@@ -75,12 +70,7 @@ class TestDeviceInitialization(unittest.TestCase):
 
         mock_refresh_remote_session.assert_not_called()
 
-        mock_create_remote_session.assert_called_once()
+        mock_create_remote_session.assert_not_called()
 
-        self.assertEqual(device.remote_session_port, 1234)
-        self.assertEqual(
-            device._remote_session_time,
-            datetime.datetime(
-                2024, 7, 26, 0, 0, 0, tzinfo=datetime.timezone.utc
-            ),
-        )
+        self.assertEqual(device.remote_session_port, None)
+        self.assertEqual(device._remote_session_time, None)
