@@ -58,6 +58,7 @@ def main():
         device_password = os.environ["DEVICE_PASSWORD"]
         soc_udt = os.environ["SOC_UDT"]
         target_build_type = os.environ["TARGET_BUILD_TYPE"]
+        use_rac = os.environ["USE_RAC"]
     except KeyError as e:
         raise KeyError(f"Missing environment variable: {e}")
 
@@ -92,12 +93,18 @@ def main():
         if database.try_until_locked(uuid):
             logger.info(f"Lock acquired for device {uuid}")
             try:
-                dut = Device(
-                    cloud, device["deviceUuid"], hardware_id, public_key
-                )
+                dut = Device(cloud, uuid, hardware_id, public_key)
                 if not dut.is_os_updated_to_latest(target_build_type):
                     dut.update_to_latest(target_build_type)
-                remote = Remote(dut, RAC_IP, device_password)
+                if use_rac:
+                    dut.setup_rac_session(RAC_IP)
+                else:
+                    dut.setup_usual_ssh_session()
+                remote = Remote(
+                    dut.remote_session_ip,
+                    dut.remote_session_port,
+                    device_password,
+                )
                 if remote.test_connection():
                     logger.info(f"Connection test succeeded for device {uuid}")
                     if args.before:

@@ -1,4 +1,3 @@
-from device import Device
 from fabric import Connection, Config
 
 import logging
@@ -6,16 +5,15 @@ import time
 
 
 class Remote:
-    def __init__(self, device: Device, address, password):
+    def __init__(self, address, port, password):
         self._logger = logging.getLogger(__name__)
-        self._device = device
         self.address = address
         self._password = password
         self._config = Config(overrides={"sudo": {"password": password}})
         self.connection = Connection(
             host=address,
             user="torizon",
-            port=device.remote_session_port,
+            port=port,
             config=self._config,
             connect_timeout=15,
             connect_kwargs={

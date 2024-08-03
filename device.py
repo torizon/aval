@@ -17,31 +17,41 @@ from http_wrapper import endpoint_call
 class Device:
     def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, public_key):
         self._log = logging.getLogger(__name__)
+
+        logging.debug(
+            f"Initializing Device object {self._hardware_id} for {self._uuid}"
+        )
+
         self._cloud_api = cloud_api
         self._uuid = uuid
         self._hardware_id = hardware_id
         self._public_key = public_key
         self._current_build = None
         self._latest_build = None
-        self._remote_session_port = None
         self._remote_session_time = None
 
-        logging.debug(
-            f"Initializing Device object {self._hardware_id} for {self._uuid}"
-        )
+        self.remote_session_ip = None
+        self.remote_session_port = None
 
+    @property
+    def remote_session_port(self):
+        return self.remote_session_port
+
+    def setup_usual_ssh_session(self):
+        network_info = self._get_network_info()
+        self.remote_session_ip = network_info["localIpV4"]
+        self.remote_session_port = "22"
+
+    def setup_rac_session(self, RAC_IP):
         try:
+            self.remote_session_ip = RAC_IP
             if not self.is_enough_time_in_session():
                 self.refresh_remote_session()
-            self._remote_session_port, self._remote_session_time = (
+            self.remote_session_port, self._remote_session_time = (
                 self._create_remote_session()
             )
         except Exception as e:
             self._log.error(f"{e}")
-
-    @property
-    def remote_session_port(self):
-        return self._remote_session_port
 
     def _create_remote_session(self):
         try:
@@ -123,7 +133,7 @@ class Device:
             )
 
             self._log.info("Remote session deleted")
-            self._remote_session_port, self._remote_session_time = (
+            self.remote_session_port, self._remote_session_time = (
                 self._create_remote_session()
             )
 
@@ -218,3 +228,20 @@ class Device:
         while self._cloud_api.get_assigment_status_for_device(self._uuid) != []:
             logging.info("Still updating...")
             time.sleep(60)
+
+    def _get_network_info(self):
+        res = endpoint_call(
+            url=API_BASE_URL + f"/devices/network/{self._uuid}",
+            request_type="get",
+            body=None,
+            headers={
+                "Authorization": f"Bearer {self._cloud_api.token}",
+                "accept": "application/json",
+            },
+            json=None,
+        )
+        if res is None:
+            raise Exception("Failed to get network info")
+
+        self._log.info(f"Obtained network info for {self._uuid}")
+        return res.json()
