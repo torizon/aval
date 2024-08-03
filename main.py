@@ -51,6 +51,9 @@ def main():
     test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
     test_whole_fleet = test_whole_fleet.lower() in ["true"]
 
+    use_rac = os.getenv("USE_RAC", "False")
+    use_rac = use_rac.lower() in ["true"]
+
     try:
         api_client = os.environ["TORIZON_API_CLIENT_ID"]
         api_secret = os.environ["TORIZON_API_SECRET_ID"]
@@ -58,7 +61,6 @@ def main():
         device_password = os.environ["DEVICE_PASSWORD"]
         soc_udt = os.environ["SOC_UDT"]
         target_build_type = os.environ["TARGET_BUILD_TYPE"]
-        use_rac = os.environ["USE_RAC"]
     except KeyError as e:
         raise KeyError(f"Missing environment variable: {e}")
 
