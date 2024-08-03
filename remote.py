@@ -17,7 +17,10 @@ class Remote:
             config=self._config,
             connect_timeout=15,
             connect_kwargs={
+                "password": password,
                 "banner_timeout": 60,
+                "allow_agent": True,
+                "look_for_keys": True,
             },
         )
 
