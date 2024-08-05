@@ -31,10 +31,10 @@ def main():
         description="Run commands on remote devices provisioned on Torizon Cloud."
     )
     parser.add_argument(
-        "--report",
-        nargs=2,
+        "--copy-artifact",
+        nargs="+",
         metavar=("remote-path", "local-output"),
-        help="Copies a file over Remote Access from remote-path from the target device to local-output.",
+        help="Copies multiple files over Remote Access from the target device to local-output. Specify pairs of remote-path and local-output.",
     )
     parser.add_argument(
         "command", type=str, help="Command to run on target device."
@@ -115,14 +115,19 @@ def main():
                     logger.info(
                         f"Command {args.command} executed for device {uuid}"
                     )
-                    if args.report:
-                        remote_path = args.report[0]
-                        local_output = args.report[1]
-                        logger.info(
-                            f"Copying report file from {remote_path} to {local_output}"
-                        )
-                        remote.connection.get(remote_path, local_output)
-                    logger.info(f"Report retrieved for device {uuid}")
+                    if args.copy_artifact:
+                        if len(args.copy_artifact) % 2 != 0:
+                            raise ValueError(
+                                "You must provide pairs of remote-path and local-output."
+                            )
+                        for i in range(0, len(args.copy_artifact), 2):
+                            remote_path = args.copy_artifact[i]
+                            local_output = args.copy_artifact[i + 1]
+                            logger.info(
+                                f"Copying copy_artifact file from {remote_path} to {local_output}"
+                            )
+                            remote.connection.get(remote_path, local_output)
+                            logger.info(f"Report retrieved for device {uuid}")
                 else:
                     logger.error(f"Connection test failed for device {uuid}")
             except Exception as e:
