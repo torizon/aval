@@ -46,6 +46,12 @@ def main():
         help="Command to run before the main command on target device.",
     )
 
+    parser.add_argument(
+        "--delegation-config",
+        type=str,
+        help="Path of config which tells Aval how to parse the target delegation.",
+    )
+
     args = parser.parse_args()
 
     test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
@@ -64,7 +70,15 @@ def main():
     except KeyError as e:
         raise KeyError(f"Missing environment variable: {e}")
 
-    cloud = CloudAPI(api_client=api_client, api_secret=api_secret)
+    if args.delegation_config:
+        cloud = CloudAPI(
+            api_client=api_client,
+            api_secret=api_secret,
+            delegation_config_path=args.delegation_config,
+        )
+    else:
+        logger.error("Missing delegation config file")
+        sys.exit(1)
 
     logger.info(f"Finding possible devices to send tests to...")
     logger.info(

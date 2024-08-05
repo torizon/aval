@@ -6,16 +6,16 @@ from http_wrapper import endpoint_call
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
 
-DELEGATION_CONFIG_PATH = "./delegation_config.toml"
-
 
 class CloudAPI:
 
-    def __init__(self, api_client, api_secret):
+    def __init__(self, api_client, api_secret, delegation_config_path):
         self._log = logging.getLogger(__name__)
 
         self.api_client = api_client
         self.api_secret = api_secret
+
+        self._config = toml.load(delegation_config_path)
 
         self.token = self._get_bearer_token()[0]
         self.provisioned_devices = self._get_provisioned_devices()
@@ -57,9 +57,7 @@ class CloudAPI:
         return res.json()["values"]
 
     def get_latest_build(self, release_type, hardware_id):
-        config = toml.load(DELEGATION_CONFIG_PATH)
-
-        for filter_entry in config["delegation_filter"]["filter"]:
+        for filter_entry in self._config["delegation_filter"]["filter"]:
             if re.search(filter_entry["hardware_id_pattern"], hardware_id):
                 name_prefix = filter_entry["name_prefix"]
                 namespace = filter_entry["namespace"]
