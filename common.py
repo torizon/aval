@@ -20,4 +20,4 @@ def pretty_print_devices(devices):
     for device in devices:
         table.add_row([device["deviceUuid"], device["deviceName"]])
 
-    print(table)
+    return table
