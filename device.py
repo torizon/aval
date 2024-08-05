@@ -5,8 +5,6 @@ import requests
 import logging
 import time
 
-import common
-
 from cloud import CloudAPI
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"

@@ -1,13 +1,12 @@
-import datetime
-import requests
 import logging
-import dateutil
-import json
-import time
+import toml
+import re
 
 from http_wrapper import endpoint_call
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
+
+DELEGATION_CONFIG_PATH = "./delegation_config.toml"
 
 
 class CloudAPI:
@@ -58,11 +57,16 @@ class CloudAPI:
         return res.json()["values"]
 
     def get_latest_build(self, release_type, hardware_id):
-        # upstream images get a different namespace for some reason now long forgotten.
-        if "imx6" in hardware_id or "imx7" in hardware_id:
-            name_contains = f"kirkstone/{hardware_id}/torizon-upstream/torizon-core-docker/{release_type}"
-        else:
-            name_contains = f"kirkstone/{hardware_id}/torizon/torizon-core-docker/{release_type}"
+        config = toml.load(DELEGATION_CONFIG_PATH)
+
+        for filter_entry in config["delegation_filter"]["filter"]:
+            if re.search(filter_entry["hardware_id_pattern"], hardware_id):
+                name_prefix = filter_entry["name_prefix"]
+                namespace = filter_entry["namespace"]
+                name_suffix = filter_entry["name_suffix"]
+
+                name_contains = f"{name_prefix}/{hardware_id}/{namespace}/{name_suffix}/{release_type}"
+                break
 
         url = (
             API_BASE_URL
