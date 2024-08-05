@@ -50,7 +50,7 @@ e2e-tests-container-build:
       -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} .
 
 unit-test:
-  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:dev
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
   script:
     - coverage run -m unittest discover -v -s . -p 'test_*.py'
     - coverage report -m
