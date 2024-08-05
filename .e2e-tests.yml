@@ -13,6 +13,7 @@
     reports:
       junit: report.xml
   needs:
+    - e2e-tests-container-build
     - unit-test
 
 e2e-test-imx8mp-nightly:
