@@ -28,14 +28,13 @@ def endpoint_call(url, request_type, headers, body, json):
         error_message = f"Oops: Something Else: {err}"
     except Exception as e:
         error_message = f"Unexpected Error: {e}"
-    else:
-        error_message = None
 
-    if error_message:
-        try:
-            logger.error(json.dumps(res.json(), indent=2))
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding JSON res: {e}")
+    if "error_message" in locals():
+        if "res" in locals():
+            try:
+                logger.error(json.dumps(res.json(), indent=2))
+            except json.JSONDecodeError as e:
+                logger.error(f"Error decoding JSON res: {e}")
         logger.error(error_message)
         raise Exception(error_message)
 
