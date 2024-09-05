@@ -4,11 +4,13 @@ from remote import Remote
 
 import database
 import common
+import convolute
 
 import logging
 import os
 import sys
 import argparse
+import yaml
 
 RAC_IP = "ras.torizon.io"
 
@@ -82,15 +84,27 @@ def main():
 
     logger.info(f"Finding possible devices to send tests to...")
     logger.info(
-        f"Matching configuration: SOC {soc_udt}, BUILD TYPE {target_build_type}"
+        f"Matching configuration: SOC_UDT {soc_udt}, BUILD TYPE {target_build_type}"
     )
     possible_duts = []
     if test_whole_fleet:
         possible_duts = cloud.provisioned_devices
     else:
+        with open("pid_map.yaml", "r") as f:
+            pid4_map = yaml.safe_load(f)
+
         for device in cloud.provisioned_devices:
-            if soc_udt == common.parse_device_id(device["deviceId"]):
+            pid4 = device["notes"]
+            if not pid4:
+                logger.error(
+                    f"The following device has no PID4 set in the `notes` field : {device}"
+                )
+
+            pid4_targets = convolute.get_pid4_list(soc_udt, pid4_map)
+
+            if pid4 in pid4_targets:
                 possible_duts.append(device)
+
     if not possible_duts:
         logger.error("Couldn't find any possible devices to send tests to")
         sys.exit(1)
@@ -110,8 +124,9 @@ def main():
             logger.info(f"Lock acquired for device {uuid}")
             try:
                 dut = Device(cloud, uuid, hardware_id, public_key)
-                if not dut.is_os_updated_to_latest(target_build_type):
-                    dut.update_to_latest(target_build_type)
+                # FIXME: just for testing
+                # if not dut.is_os_updated_to_latest(target_build_type):
+                # dut.update_to_latest(target_build_type)
                 if use_rac:
                     dut.setup_rac_session(RAC_IP)
                 else:
