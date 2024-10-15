@@ -1,6 +1,6 @@
 import os
 import time
-import psycopg2
+import psycopg
 import logging
 from contextlib import contextmanager
 
@@ -17,7 +17,7 @@ DB_PARAMS = {
 
 @contextmanager
 def get_db_connection():
-    conn = psycopg2.connect(**DB_PARAMS)
+    conn = psycopg.connect(**DB_PARAMS)
     try:
         yield conn
     finally:
