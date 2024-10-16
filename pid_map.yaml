@@ -1,69 +1,95 @@
-# Glossary:
-# Some of the abbreviations here for the SoC are invented by us.
-# For example, there is no `imx8mpq` or `imx8mpql`, the letters are just
-# a hint to differentiate between SoC configurations available from Toradex.
-# So, more like an internal communication language to ~generally~ know what SoC
-# one is talking about. When in doubt, consult the datashets.
+common_props_default: &common_props_default
+  soc_vpu: true
+  soc_gpu: true
+  soc_dpu: false
+  soc_npu: false
 
-# imx8qm - Quad Max
-# imx8qxp - Quad X Plus
-# imx8qp - Quad Plus
-# imx8dx - Dual X
-# imx8mmq - M Mini Quad
-# imx8mmdl - M Mini Dual Lite
-# imx8mpq - M Plus Quad
-# imx8mpql - M Plus Quad Lite
+common_props_with_dpu: &common_props_with_dpu
+  soc_vpu: true
+  soc_gpu: true
+  soc_dpu: true
+  soc_npu: false
 
-# If socvpu doesn't exist -> assume socvpu: true
-# If socgpu doesn't exist -> assume socgpu: true
-# If socdpu doesn't exist -> assume socdpu: false
-# If socnpu doesn't exist ->  assume socnpu: false
+common_props_vpu_false: &common_props_vpu_false
+  soc_vpu: false
+  soc_gpu: true
+  soc_dpu: false
+  soc_npu: false
+
+common_props_npu_true: &common_props_npu_true
+  soc_vpu: true
+  soc_gpu: true
+  soc_dpu: false
+  soc_npu: true
 
 apalis-imx8qm:
   pid4:
-  - '0037'
-  - '0047'
-  - '0067'
-  socdpu: 'g2d'
+    - id: '0037'
+      <<: *common_props_with_dpu
+    - id: '0047'
+      <<: *common_props_with_dpu
+    - id: '0067'
+      <<: *common_props_with_dpu
+
 apalis-imx8qp:
   pid4:
-  - '0048'
-  - '0049'
+    - id: '0048'
+      <<: *common_props_default
+    - id: '0049'
+      <<: *common_props_default
+
 colibri-imx8dx:
   pid4:
-  - '0051'
-  - '0052'
-  socdpu: 'g2d'
+    - id: '0051'
+      <<: *common_props_with_dpu
+    - id: '0052'
+      <<: *common_props_with_dpu
+
 colibri-imx8qxp:
   pid4:
-  - '0038'
-  - '0050'
+    - id: '0038'
+      <<: *common_props_default
+    - id: '0050'
+      <<: *common_props_default
+
 verdin-imx8mmdl:
   pid4:
-  - '0057'
-  - '0060'
-  - '0086'
-  socvpu: false
+    - id: '0057'
+      <<: *common_props_vpu_false
+    - id: '0060'
+      <<: *common_props_vpu_false
+    - id: '0086'
+      <<: *common_props_vpu_false
+
 verdin-imx8mmq:
   pid4:
-  - '0055'
-  - '0059'
-  - '0068'
-  - '0087'
-  - '0090'
+    - id: '0055'
+      <<: *common_props_default
+    - id: '0059'
+      <<: *common_props_default
+    - id: '0068'
+      <<: *common_props_default
+    - id: '0087'
+      <<: *common_props_default
+    - id: '0090'
+      <<: *common_props_default
+
 verdin-imx8mpq:
   pid4:
     - id: '0058'
+      <<: *common_props_default
     - id: '0061'
+      <<: *common_props_default
     - id: '0063'
-      socnpu: true
+      <<: *common_props_npu_true
     - id: '0064'
-      socnpu: true
+      <<: *common_props_npu_true
     - id: '0066'
-      socnpu: true
+      <<: *common_props_npu_true
     - id: '0070'
-      socnpu: true
+      <<: *common_props_npu_true
+
 verdin-imx8mpql:
   pid4:
-  - '0065'
-  socvpu: false
+    - id: '0065'
+      <<: *common_props_vpu_false

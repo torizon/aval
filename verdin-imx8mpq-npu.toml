@@ -1,0 +1,3 @@
+[soc_udt]
+soc_udt_name = "verdin-imx8mpq"
+soc_properties = ["soc_npu"]

@@ -10,6 +10,7 @@ os.environ["POSTGRES_PORT"] = "5432"
 
 import database
 
+
 class TestDatabase(unittest.TestCase):
     @patch("database.acquire_lock")
     def test_try_until_locked_success(self, mock_acquire_lock):
@@ -42,6 +43,7 @@ class TestDatabase(unittest.TestCase):
         mock_acquire_lock.assert_called_with(
             "5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE"
         )
+
 
 if __name__ == "__main__":
     unittest.main()

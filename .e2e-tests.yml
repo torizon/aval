@@ -36,3 +36,22 @@ e2e-test-verdin-imx8mpq-release:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "verdin-imx8mpq"
+
+e2e-test-verdin-imx8mpq-npu-release:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
+  variables:
+    TARGET_BUILD_TYPE: "release"
+    AVAL_VERBOSE: "true"
+  script:
+    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
+      -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
+      --copy-artifact /home/torizon/report.xml report.xml --delegation-config /aval/delegation_config.toml
+      --device-config /aval/verdin-imx8mpq-npu.toml --before "docker system prune --force --all"
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+  needs:
+    - e2e-tests-container-build
+    - unit-test
