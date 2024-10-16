@@ -1,4 +1,7 @@
 from prettytable import PrettyTable
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def parse_device_id(device_id):
@@ -16,8 +19,9 @@ def parse_hardware_id(device_id):
 
 def pretty_print_devices(devices):
     table = PrettyTable(["Device UUID", "Device Name"])
-
     for device in devices:
         table.add_row([device["deviceUuid"], device["deviceName"]])
 
-    return table
+    table_string = table.get_string()
+    for line in table_string.split("\n"):
+        logger.info(line)

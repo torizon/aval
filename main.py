@@ -1,207 +1,39 @@
 from cloud import CloudAPI
-from device import Device
-from remote import Remote
-
-import database
-import common
-import convolute
-
 import logging
-import os
 import sys
-import argparse
-import yaml
-import toml
 
-RAC_IP = "ras.torizon.io"
+import logging_setup
+import argument_parser
+import environment
+import device_matcher
+import device_handler
 
 
 def main():
-    if os.getenv("AVAL_VERBOSE"):
-        logging_level = logging.DEBUG
-    else:
-        logging_level = logging.INFO
+    logger = logging_setup.setup_logging()
 
-    logging.basicConfig(
-        level=logging_level,
-        format="%(levelname)s - %(asctime)s - File: %(filename)s, Line: %(lineno)d -  %(message)s",
-        datefmt="%H:%M:%S",
-    )
+    args = argument_parser.parse_arguments()
 
-    logger = logging.getLogger(__name__)
-
-    parser = argparse.ArgumentParser(
-        description="Run commands on remote devices provisioned on Torizon Cloud."
-    )
-    parser.add_argument(
-        "--copy-artifact",
-        nargs="+",
-        metavar=("remote-path", "local-output"),
-        help="Copies multiple files over Remote Access from the target device to local-output. Specify pairs of remote-path and local-output.",
-    )
-    parser.add_argument(
-        "command", type=str, help="Command to run on target device."
-    )
-
-    parser.add_argument(
-        "--before",
-        type=str,
-        help="Command to run before the main command on target device.",
-    )
-
-    parser.add_argument(
-        "--delegation-config",
-        type=str,
-        help="Path of config which tells Aval how to parse the target delegation.",
-    )
-
-    parser.add_argument(
-        "--device-config",
-        type=str,
-        help="Path of config which tells Aval which device to match.",
-    )
-
-    args = parser.parse_args()
-
-    test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False")
-    test_whole_fleet = test_whole_fleet.lower() in ["true"]
-
-    use_rac = os.getenv("USE_RAC", "False")
-    use_rac = use_rac.lower() in ["true"]
-
-    if not args.device_config:
-        try:
-            soc_udt = os.environ["SOC_UDT"]
-        except KeyError as e:
-            raise KeyError(f"Missing environment variable: {e}")
-
-    try:
-        api_client = os.environ["TORIZON_API_CLIENT_ID"]
-        api_secret = os.environ["TORIZON_API_SECRET_ID"]
-        public_key = os.environ["PUBLIC_KEY"]
-        device_password = os.environ["DEVICE_PASSWORD"]
-        target_build_type = os.environ["TARGET_BUILD_TYPE"]
-    except KeyError as e:
-        raise KeyError(f"Missing environment variable: {e}")
+    env_vars = environment.load_environment_variables(args)
 
     if args.delegation_config:
         cloud = CloudAPI(
-            api_client=api_client,
-            api_secret=api_secret,
+            api_client=env_vars["TORIZON_API_CLIENT_ID"],
+            api_secret=env_vars["TORIZON_API_SECRET_ID"],
             delegation_config_path=args.delegation_config,
         )
     else:
         logger.error("Missing delegation config file")
         sys.exit(1)
 
-    logger.info(f"Finding possible devices to send tests to...")
-    if not args.device_config:
-        logger.info(
-            f"Matching configuration: SOC_UDT {soc_udt}, BUILD TYPE {target_build_type}"
-        )
-    else:
-        device_config = toml.load(args.device_config)
-        soc_udt, soc_properties = convolute.get_device_config_data(
-            device_config
-        )
-        logger.info(
-            f"Matching configuration: SOC_UDT {soc_udt}, SOC_PROPERTIES {soc_properties}, BUILD TYPE {target_build_type}"
-        )
+    possible_duts = device_matcher.find_possible_devices(cloud, args, env_vars)
 
-    possible_duts = []
-    if test_whole_fleet:
-        possible_duts = cloud.provisioned_devices
-    else:
-        with open("pid_map.yaml", "r") as f:
-            pid4_map = yaml.safe_load(f)
-
-        for device in cloud.provisioned_devices:
-            pid4 = device["notes"]
-            if not pid4:
-                logger.error(
-                    f"The following device has no PID4 set in the `notes` field : {device}"
-                )
-
-            if args.device_config:
-                pid4_targets = convolute.get_pid4_list_with_device_config(
-                    device_config, pid4_map
-                )
-            else:
-                pid4_targets = convolute.get_pid4_list(soc_udt, pid4_map)
-
-            if pid4 in pid4_targets:
-                possible_duts.append(device)
-
-    if not possible_duts:
-        logger.error("Couldn't find any possible devices to send tests to")
-        sys.exit(1)
-    else:
-        logger.info("Found these devices to send tests to:")
-        logger.info(common.pretty_print_devices(possible_duts))
-
-    logger.info("Attempting to lock a device")
     for device in possible_duts:
-        uuid = device["deviceUuid"]
-        hardware_id = common.parse_hardware_id(device["deviceId"])
-        if not database.device_exists(uuid):
-            database.create_device(uuid)
-            logger.info(f"Created new device entry for {uuid}")
+        success = device_handler.process_device(device, cloud, env_vars, args)
+        if success and not env_vars["TEST_WHOLE_FLEET"]:
+            sys.exit(0)
 
-        if database.try_until_locked(uuid):
-            logger.info(f"Lock acquired for device {uuid}")
-            try:
-                dut = Device(cloud, uuid, hardware_id, public_key)
-                # FIXME: just for testing
-                # if not dut.is_os_updated_to_latest(target_build_type):
-                # dut.update_to_latest(target_build_type)
-                if use_rac:
-                    dut.setup_rac_session(RAC_IP)
-                else:
-                    dut.setup_usual_ssh_session()
-                remote = Remote(
-                    dut.remote_session_ip,
-                    dut.remote_session_port,
-                    device_password,
-                )
-                if remote.test_connection():
-                    logger.info(f"Connection test succeeded for device {uuid}")
-                    if args.before:
-                        remote.connection.run(args.before)
-                    remote.connection.run(args.command)
-                    logger.info(
-                        f"Command {args.command} executed for device {uuid}"
-                    )
-                    if args.copy_artifact:
-                        if len(args.copy_artifact) % 2 != 0:
-                            raise ValueError(
-                                "You must provide pairs of remote-path and local-output."
-                            )
-                        for i in range(0, len(args.copy_artifact), 2):
-                            remote_path = args.copy_artifact[i]
-                            local_output = args.copy_artifact[i + 1]
-                            logger.info(
-                                f"Copying copy_artifact file from {remote_path} to {local_output}"
-                            )
-                            remote.connection.get(remote_path, local_output)
-                            logger.info(f"Report retrieved for device {uuid}")
-                else:
-                    logger.error(f"Connection test failed for device {uuid}")
-            except Exception as e:
-                logger.error(
-                    f"An error occurred while processing device {uuid}: {e}"
-                )
-                sys.exit(1)
-            finally:
-                database.release_lock(uuid)
-                logger.info(f"Lock released for device {uuid}")
-            # found a matching device, locked it, tested, unlocked it...
-            if not test_whole_fleet:
-                sys.exit(0)
-        else:
-            logger.info(f"Failed to acquire lock for device {uuid}")
-            sys.exit(1)
-
-    if not test_whole_fleet:
+    if not env_vars["TEST_WHOLE_FLEET"]:
         # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h
         sys.exit(69)
 
