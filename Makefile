@@ -11,3 +11,6 @@ check_black:
 format: check_black
 	$(BLACK) --verbose --line-length 80 -- *.py
 
+.PHONY: test
+test:
+	coverage run -m unittest discover -v -s . -p 'test_*.py'
