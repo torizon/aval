@@ -10,7 +10,7 @@ Aval is meant to be used either locally or from a CI pipeline.
 Copied straight from `python3 main.py --help`.
 
 ```
-usage: main.py [-h] [--report remote-path local-output] [--before BEFORE] command
+usage: main.py [-h] [--copy-artifact remote-path [local-output ...]] [--before BEFORE] [--delegation-config DELEGATION_CONFIG] [--device-config DEVICE_CONFIG] command
 
 Run commands on remote devices provisioned on Torizon Cloud.
 
@@ -19,9 +19,13 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --report remote-path local-output
-                        Copies a file over Remote Access from remote-path from the target device to local-output.
+  --copy-artifact remote-path [local-output ...]
+                        Copies multiple files over Remote Access from the target device to local-output. Specify pairs of remote-path and local-output.
   --before BEFORE       Command to run before the main command on target device.
+  --delegation-config DELEGATION_CONFIG
+                        Path of config which tells Aval how to parse the target delegation.
+  --device-config DEVICE_CONFIG
+                        Path of config which tells Aval which device to match.
 ```
 
 ## Example
@@ -36,40 +40,23 @@ One interesting aspect is that Aval uses `fabric`, which echoes back the test ru
 
 For more information check the `main.py` file and `.gitlab-ci.yml`.
 
-## Running it locally
-
-The easiest way to try it is using the provided `docker-compose.yml`.
-You'll need a `.env` file as well, which can be created from the `.env.template` file.
-
-An explanation of each variable follows:
-
-- `POSTGRES_DB` is the name of the database. Defaults to `aval`.
-- `POSTGRES_HOST` is the IP of where the Postgres service is running. Defaults to `aval_postgres`, the same name of the service in `docker-compose.yml`.
-- `POSTGRES_PORT` is the database server port. Defaults to `5432`
-- `POSTGRES_USER` is the user used to login/authenticate into Postgres.
-- `POSTGRES_PASSWORD` is the password for `POSTGRES_USER`.
-- `PGADMIN_DEFAULT_EMAIL` is the default login e-mail for pgadmin (frontend for Postgres).
-- `PGADMIN_DEFAULT_PASSWORD` is the default password for pgadmin.
-- `TORIZON_API_CLIENT_ID` and `TORIZON_API_SECRET_ID` can be obtained using the Torizon Cloud UI.
-- `PUBLIC_KEY`, `PRIVATE_KEY` are the ones registered in the Torizon Cloud.
-- `DEVICE_PASSWORD` is the actual device password for the devices. We do not support having different password for each of the devices.
-- `SOC_UDT` (System-on-Chip Under Test) is a variable to match against the `Device ID` field under the Device Information tab under the Hardware section. As an example, a provisioned device with `Device ID: apalis-imx8-14724532-f2b9cb` will match against `SOC_UDT=imx8`.
-- `AVAL_VERBOSE`: makes Aval loud.
-
-Then just `docker-compose up --build`.
-
 ## Developing 
+
+First, fill in the information from the provided `.env.template` into a new `.env` file.
 
 The easiest way to develop is setting up a mountpoint inside the Python container like so
 
 ```
 $ docker run -it -v $(pwd):/aval --workdir=/aval python:latest bash
-# pip install -r requirements.txt
-# eval $(cat .env) python3 main.py ... # or `./entrypoint.sh ...`
-# coverage run -m unittest discover -v -s . -p 'test_*.py' # runs unit tests
+# make install
+# make test
+# make format
 ```
 
-Of course this assumes you can access the database (see the `docker-compose.yml` file for help with that).
+To run a test (echo Hello) on a provisioned Apalis iMX8 QuadMax
+```
+# eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"`
+```
 
 ## Aval's Database
 
@@ -81,14 +68,14 @@ The idea behind it is exploiting transaction atomicity for database operations, 
 
 We have end-to-end tests that mimic exactly how you should run this in CI. Please take a look at the `.gitlab-ci.yml` and `.e2e-tests.yml` files.
 
-Note: you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
+Note: if you're using RAC for remote access (`USE_RAC=true`), you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
-## Missing features
- - Missing documentation about how to use mountpoints with the source code to make development easier
- - Source and test code is not split at all at this moment, would be a very nice to have
+## Contributing
 
-Other `TODO`s and `FIXME`s are probably in the code as well, so if you wanna fix something outright, just grep for that.
+`TODO`s and `FIXME`s are probably scattered around the code, please grep for that.
 
 ## Credits
 
 The core classes of Aval are based off Eduardo's A/B to Torizon OS migration script, albeit with significant changes.
+
+The hardware setup that Aval is developed upon and used to run hundreds of tests each day was created by Lucas Bernardes, with 3D models available for download (here)[https://github.com/torizon/modular-rack-toradex].

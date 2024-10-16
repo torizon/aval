@@ -11,6 +11,10 @@ check_black:
 format: check_black
 	$(BLACK) --verbose --line-length 80 -- *.py
 
+.PHONY: install
+install:
+	pip install -r requirements.txt
+
 .PHONY: test
 test:
 	coverage run -m unittest discover -v -s . -p 'test_*.py'
