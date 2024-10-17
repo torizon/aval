@@ -70,6 +70,15 @@ We have end-to-end tests that mimic exactly how you should run this in CI. Pleas
 
 Note: if you're using RAC for remote access (`USE_RAC=true`), you must have the IP of the CI runner whitelisted on Torizon Cloud, under Remote Access settings, otherwise the IP will be soft-banned and automatically return a 400 error when opening a new session.
 
+## Property-based Filtering
+
+Aval can filter by SoC properties such as if it has a VPU, NPU or any other peripheral. The basic idea is we describe the features we want when issuing a test
+through a toml file (see [the a description of Verdin iMX8 with NPU](./verdin-imx8mpq-npu.toml)) and Aval holds a source-of-truth based on the PID4 (Product ID)
+for a every possible board (see the [pid_mal.yaml file](./pid_map.yaml)). Aval will then automatically match properties and match against a provisioned
+device with those properties by its PID4 stored in the `notes` field of Torizon Cloud.
+
+For an example, check the [e2e-tests](./e2e-tests.yml) file. Currently supported properties can be examined in the [pid_mal.yaml file](./pid_map.yaml).
+
 ## Contributing
 
 `TODO`s and `FIXME`s are probably scattered around the code, please grep for that.
@@ -78,4 +87,4 @@ Note: if you're using RAC for remote access (`USE_RAC=true`), you must have the 
 
 The core classes of Aval are based off Eduardo's A/B to Torizon OS migration script, albeit with significant changes.
 
-The hardware setup that Aval is developed upon and used to run hundreds of tests each day was created by Lucas Bernardes, with 3D models available for download (here)[https://github.com/torizon/modular-rack-toradex].
+The hardware setup that Aval is developed upon and used to run hundreds of tests each day was created by Lucas Bernardes, with 3D models available for download [here](https://github.com/torizon/modular-rack-toradex).
