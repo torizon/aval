@@ -16,11 +16,39 @@ common_props_vpu_false: &common_props_vpu_false
   soc_dpu: false
   soc_npu: false
 
+common_props_gpu_false: &common_props_gpu_false
+  soc_vpu: false
+  soc_gpu: false
+  soc_dpu: false
+  soc_npu: false
+
 common_props_npu_true: &common_props_npu_true
   soc_vpu: true
   soc_gpu: true
   soc_dpu: false
   soc_npu: true
+
+apalis-imx6d:
+  pid4:
+    - id: '0029'
+      <<: *common_props_default
+    - id: '0035'
+      <<: *common_props_default
+    - id: '0082'  # Same properties except WinCE License
+      <<: *common_props_default
+    - id: '0084'  # Same properties except WinCE License
+      <<: *common_props_default
+
+apalis-imx6q:
+  pid4:
+    - id: '0027'
+      <<: *common_props_default
+    - id: '0028'
+      <<: *common_props_default
+    - id: '0083'  # Same properties except WinCE License
+      <<: *common_props_default
+    - id: '0085'  # Same properties except WinCE License
+      <<: *common_props_default
 
 apalis-imx8qm:
   pid4:
@@ -38,6 +66,50 @@ apalis-imx8qp:
     - id: '0049'
       <<: *common_props_default
 
+apalis-tk1:
+  pid4:
+    - id: '0034'
+      <<: *common_props_default
+
+colibri-imx6dl:
+  pid4:
+    - id: '0015'
+      <<: *common_props_default
+    - id: '0017'
+      <<: *common_props_default
+    - id: '0079'  # Same properties except WinCE License
+      <<: *common_props_default
+    - id: '0080'  # Same properties except WinCE License
+      <<: *common_props_default
+
+colibri-imx6s:
+  pid4:
+    - id: '0014'
+      <<: *common_props_default
+    - id: '0016'
+      <<: *common_props_default
+    - id: '0077'  # Same properties except WinCE License
+      <<: *common_props_default
+    - id: '0078'  # Same properties except WinCE License
+      <<: *common_props_default
+
+colibri-imx6ull:
+  pid4:
+    - id: '0036'
+      <<: *common_props_gpu_false
+    - id: '0040'
+      <<: *common_props_gpu_false
+
+colibri-imx6ull-emmc:
+  pid4:
+    - id: '0062'
+      <<: *common_props_gpu_false
+
+colibri-imx7d-emmc:
+  pid4:
+    - id: '0039'
+      <<: *common_props_gpu_false
+
 colibri-imx8dx:
   pid4:
     - id: '0051'
@@ -51,6 +123,29 @@ colibri-imx8qxp:
       <<: *common_props_default
     - id: '0050'
       <<: *common_props_default
+
+verdin-am62dual:
+  pid4:
+    - id: '0073'
+      <<: *common_props_gpu_false
+    - id: '0074'
+      <<: *common_props_vpu_false
+    - id: '0075'
+      <<: *common_props_vpu_false
+
+verdin-am62quad:
+  pid4:
+    - id: '0069'
+      <<: *common_props_vpu_false
+    - id: '0076'
+      <<: *common_props_vpu_false
+
+verdin-am62s:
+  pid4:
+    - id: '0071'
+      <<: *common_props_gpu_false
+    - id: '0072'
+      <<: *common_props_gpu_false
 
 verdin-imx8mmdl:
   pid4:

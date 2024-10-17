@@ -17,6 +17,21 @@
     - e2e-tests-container-build
     - unit-test
 
+e2e-test-colibri-imx7d-emmc-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "colibri-imx7d-emmc"
+
+e2e-test-verdin-am62dual-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "verdin-am62dual"
+
+e2e-test-apalis-imx6q-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "apalis-imx6q"
+
 e2e-test-apalis-imx8qm-release:
   extends: .e2e-test-template
   variables:
