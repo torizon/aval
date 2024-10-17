@@ -25,6 +25,13 @@ def process_device(device, cloud, env_vars, args):
 
             if not dut.is_os_updated_to_latest(env_vars["TARGET_BUILD_TYPE"]):
                 dut.update_to_latest(env_vars["TARGET_BUILD_TYPE"])
+                # If this is true again, a rollback happened
+                if not dut.is_os_updated_to_latest(
+                    env_vars["TARGET_BUILD_TYPE"]
+                ):
+                    raise Exception(
+                        f"The update wasn't succesfull: the device {uuid} most likely rollbacked."
+                    )
 
             if env_vars["USE_RAC"]:
                 dut.setup_rac_session(RAC_IP)
