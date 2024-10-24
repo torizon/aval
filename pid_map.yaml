@@ -28,163 +28,215 @@ common_props_npu_true: &common_props_npu_true
   soc_dpu: false
   soc_npu: true
 
+common_props_architecture_arm: &common_props_architecture_arm
+  architecture: "arm"
+
+common_props_architecture_arm64: &common_props_architecture_arm64
+  architecture: "arm64"
+
 apalis-imx6d:
   pid4:
     - id: '0029'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0035'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0082'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0084'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
 
 apalis-imx6q:
   pid4:
     - id: '0027'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0028'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0083'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0085'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
 
 apalis-imx8qm:
   pid4:
     - id: '0037'
       <<: *common_props_with_dpu
+      <<: *common_props_architecture_arm64
     - id: '0047'
       <<: *common_props_with_dpu
+      <<: *common_props_architecture_arm64
     - id: '0067'
       <<: *common_props_with_dpu
+      <<: *common_props_architecture_arm64
 
 apalis-imx8qp:
   pid4:
     - id: '0048'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0049'
       <<: *common_props_default
-
-apalis-tk1:
-  pid4:
-    - id: '0034'
-      <<: *common_props_default
+      <<: *common_props_architecture_arm64
 
 colibri-imx6dl:
   pid4:
     - id: '0015'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0017'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0079'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0080'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
 
 colibri-imx6s:
   pid4:
     - id: '0014'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0016'
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0077'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
     - id: '0078'  # Same properties except WinCE License
       <<: *common_props_default
+      <<: *common_props_architecture_arm
 
 colibri-imx6ull:
   pid4:
     - id: '0036'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm
     - id: '0040'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm
 
 colibri-imx6ull-emmc:
   pid4:
     - id: '0062'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm
 
 colibri-imx7d-emmc:
   pid4:
     - id: '0039'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm
 
 colibri-imx8dx:
   pid4:
     - id: '0051'
       <<: *common_props_with_dpu
+      <<: *common_props_architecture_arm64
     - id: '0052'
       <<: *common_props_with_dpu
+      <<: *common_props_architecture_arm64
 
 colibri-imx8qxp:
   pid4:
     - id: '0038'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0050'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
 
 verdin-am62dual:
   pid4:
     - id: '0073'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm64
     - id: '0074'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
     - id: '0075'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
 
 verdin-am62quad:
   pid4:
     - id: '0069'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
     - id: '0076'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
 
 verdin-am62s:
   pid4:
     - id: '0071'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm64
     - id: '0072'
       <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm64
 
 verdin-imx8mmdl:
   pid4:
     - id: '0057'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
     - id: '0060'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
     - id: '0086'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64
 
 verdin-imx8mmq:
   pid4:
     - id: '0055'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0059'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0068'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0087'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0090'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
 
 verdin-imx8mpq:
   pid4:
     - id: '0058'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0061'
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
     - id: '0063'
       <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
     - id: '0064'
       <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
     - id: '0066'
       <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
     - id: '0070'
       <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
 
 verdin-imx8mpql:
   pid4:
     - id: '0065'
       <<: *common_props_vpu_false
+      <<: *common_props_architecture_arm64

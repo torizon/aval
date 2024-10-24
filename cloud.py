@@ -31,7 +31,7 @@ class CloudAPI:
                 "client_secret": self.api_secret,
             },
             headers=None,
-            json=None,
+            json_data=None,
         )
 
         tokens.append(res.json()["access_token"])
@@ -48,7 +48,7 @@ class CloudAPI:
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
 
         if self._log.isEnabledFor(logging.DEBUG):
@@ -79,7 +79,7 @@ class CloudAPI:
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
 
         if self._log.isEnabledFor(logging.DEBUG):
@@ -105,7 +105,7 @@ class CloudAPI:
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
 
         if self._log.isEnabledFor(logging.DEBUG):
@@ -126,7 +126,7 @@ class CloudAPI:
                 "Authorization": f"Bearer {self.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
 
         if self._log.isEnabledFor(logging.DEBUG):

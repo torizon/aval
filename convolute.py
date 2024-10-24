@@ -24,12 +24,26 @@ def get_pid4_list(soc, pid4_map):
     return pid4_list
 
 
+def get_pid4_list_from_architecture(soc_architecture, pid4_map):
+    logger.debug(f"Getting PID4 list for architecture: {soc_architecture}")
+
+    matching_pid4s = []
+    for soc_name, soc_data in pid4_map.items():
+        for pid4_entry in soc_data.get("pid4", []):
+            if pid4_entry.get("architecture") == soc_architecture:
+                matching_pid4s.append(pid4_entry.get("id"))
+
+    logger.debug(f"Matching PID4 list: {matching_pid4s}")
+    return matching_pid4s
+
+
 def get_pid4_list_with_device_config(device_config, pid4_map):
     logger.debug("Getting PID4 list with device config")
 
     soc_udt, soc_properties = device_config
 
     pid4_data = pid4_map.get(soc_udt, {}).get("pid4", [])
+
     logger.debug(f"PID4 data: {pid4_data}")
 
     pid4_list = []

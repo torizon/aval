@@ -46,15 +46,88 @@ class TestDeviceMatcher(unittest.TestCase):
 
         self.cloud = MagicMock()
         self.cloud.provisioned_devices = self.sample_devices
-
         self.args = MagicMock()
         self.args.device_config = None
-
         self.env_vars = {
             "TEST_WHOLE_FLEET": False,
             "TARGET_BUILD_TYPE": "some_build_type",
             "SOC_UDT": "some_soc_udt",
         }
+
+    @patch("device_matcher.config_loader")
+    @patch("device_matcher.convolute")
+    @patch("device_matcher.common")
+    def test_find_possible_devices_with_architecture(
+        self, mock_common, mock_convolute, mock_config_loader
+    ):
+        self.env_vars["SOC_ARCHITECTURE"] = "arm64"
+        self.env_vars["SOC_UDT"] = None
+
+        pid4_map = {
+            "arm64": ["1001", "1003"],
+        }
+        mock_config_loader.load_pid_map.return_value = pid4_map
+
+        mock_convolute.get_pid4_list_from_architecture.return_value = [
+            "1001",
+            "1003",
+        ]
+
+        self.cloud.provisioned_devices = [
+            {"deviceUuid": "uuid1", "deviceId": "device1", "notes": "1001"},
+            {"deviceUuid": "uuid2", "deviceId": "device2", "notes": "1002"},
+            {"deviceUuid": "uuid3", "deviceId": "device3", "notes": "1003"},
+        ]
+
+        possible_duts = find_possible_devices(
+            self.cloud, self.args, self.env_vars
+        )
+
+        expected_devices = [
+            {"deviceUuid": "uuid1", "deviceId": "device1", "notes": "1001"},
+            {"deviceUuid": "uuid3", "deviceId": "device3", "notes": "1003"},
+        ]
+        self.assertEqual(possible_duts, expected_devices)
+
+        mock_convolute.get_pid4_list_from_architecture.assert_called_once_with(
+            "arm64", pid4_map
+        )
+
+    @patch("device_matcher.config_loader")
+    @patch("device_matcher.convolute")
+    @patch("device_matcher.common")
+    def test_find_possible_devices_with_udt(
+        self, mock_common, mock_convolute, mock_config_loader
+    ):
+        self.env_vars["SOC_UDT"] = "some_soc_udt"
+        self.env_vars["SOC_ARCHITECTURE"] = None
+
+        pid4_map = {
+            "some_soc_udt": ["0001", "0002"],
+        }
+        mock_config_loader.load_pid_map.return_value = pid4_map
+
+        mock_convolute.get_pid4_list.return_value = ["0001", "0002"]
+
+        self.cloud.provisioned_devices = [
+            {"deviceUuid": "uuid1", "deviceId": "device1", "notes": "0001"},
+            {"deviceUuid": "uuid2", "deviceId": "device2", "notes": "0002"},
+            {"deviceUuid": "uuid3", "deviceId": "device3", "notes": "0003"},
+        ]
+
+        possible_duts = find_possible_devices(
+            self.cloud, self.args, self.env_vars
+        )
+
+        expected_devices = [
+            {"deviceUuid": "uuid1", "deviceId": "device1", "notes": "0001"},
+            {"deviceUuid": "uuid2", "deviceId": "device2", "notes": "0002"},
+        ]
+        self.assertEqual(possible_duts, expected_devices)
+
+        mock_convolute.get_pid4_list.assert_called_once_with(
+            "some_soc_udt", pid4_map
+        )
 
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")

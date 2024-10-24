@@ -3,5 +3,7 @@ __pycache__/
 .coverage
 aval/
 *html
-.env
+.env*
 .idea
+device_information.json
+

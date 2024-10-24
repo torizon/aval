@@ -1,5 +1,8 @@
 import logging
 import sys
+import json
+import subprocess
+
 import database
 import common
 from device import Device
@@ -47,13 +50,29 @@ def process_device(device, cloud, env_vars, args):
             if remote.test_connection():
                 logger.debug(f"Connection test succeeded for device {uuid}")
 
+                logger.debug(dut.network_info)
+
+                if dut.network_info:
+                    with open("device_information.json", "w") as f:
+                        json.dump(dut.network_info, f, ensure_ascii=False)
+
+                if args.run_before_on_host:
+                    logger.debug(f"Executing {args.run_before_on_host} on host")
+                    subprocess.check_call(
+                        args.run_before_on_host,
+                        shell=True,
+                        stdout=sys.stdout,
+                        stderr=subprocess.STDOUT,
+                    )
+
                 if args.before:
                     remote.connection.run(args.before)
 
-                remote.connection.run(args.command)
-                logger.info(
-                    f"Command '{args.command}' executed for device {uuid}"
-                )
+                if args.command:
+                    remote.connection.run(args.command)
+                    logger.info(
+                        f"Command '{args.command}' executed for device {uuid}"
+                    )
 
                 if args.copy_artifact:
                     for i in range(0, len(args.copy_artifact), 2):

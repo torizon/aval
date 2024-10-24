@@ -8,7 +8,7 @@
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
       --copy-artifact /home/torizon/report.xml report.xml --delegation-config /aval/delegation_config.toml
-      --before "docker system prune --force --all"
+      --before "docker system prune --force --all" --run-before-on-host "/aval/host_command.sh device_information.json" 
   artifacts:
     when: always
     reports:
@@ -118,3 +118,15 @@ e2e-test-verdin-imx8mpq-npu-release:
   needs:
     - e2e-tests-container-build
     - unit-test
+
+e2e-test-any-arm64-nightly:
+  extends: .e2e-test-template
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_ARCHITECTURE: "arm64"
+
+e2e-test-any-arm-release:
+  extends: .e2e-test-template
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_ARCHITECTURE: "arm"

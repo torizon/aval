@@ -14,7 +14,7 @@ class TestEndpointCall(unittest.TestCase):
         url = "http://example.com/api"
         headers = {"Authorization": "Bearer token"}
         result = endpoint_call(
-            url, "get", headers=headers, body=None, json=None
+            url, "get", headers=headers, body=None, json_data=None
         )
 
         self.assertEqual(result.json(), {"key": "value"})
@@ -30,7 +30,7 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
         body = {"data": "value"}
         result = endpoint_call(
-            url, "post", headers=headers, body=body, json=None
+            url, "post", headers=headers, body=body, json_data=None
         )
 
         self.assertEqual(result.json(), {"status": "success"})
@@ -47,7 +47,7 @@ class TestEndpointCall(unittest.TestCase):
         url = "http://example.com/api"
         headers = {"Authorization": "Bearer token"}
         result = endpoint_call(
-            url, "delete", headers=headers, body=None, json=None
+            url, "delete", headers=headers, body=None, json_data=None
         )
 
         self.assertEqual(result.json(), {"status": "success"})
@@ -60,7 +60,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "posr", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "posr", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception),
@@ -77,7 +79,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "get", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "get", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception),
@@ -96,7 +100,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "get", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "get", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception),
@@ -115,7 +121,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "get", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "get", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception),
@@ -134,7 +142,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "get", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "get", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception),
@@ -151,7 +161,9 @@ class TestEndpointCall(unittest.TestCase):
         headers = {"Authorization": "Bearer token"}
 
         with self.assertRaises(Exception) as context:
-            endpoint_call(url, "get", headers=headers, body=None, json=None)
+            endpoint_call(
+                url, "get", headers=headers, body=None, json_data=None
+            )
 
         self.assertEqual(
             str(context.exception), "Unexpected Error: Not request error"

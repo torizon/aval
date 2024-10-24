@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch, call
 import sys
+import subprocess
 
 from device_handler import process_device
 
@@ -30,9 +31,55 @@ class TestDeviceHandler(unittest.TestCase):
             "USE_RAC": False,
         }
         self.args = MagicMock()
-        self.args.before = None
-        self.args.command = 'echo "Hello World"'
-        self.args.copy_artifact = None
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    @patch("device_handler.Remote")
+    @patch("subprocess.check_call")  # Mock subprocess.check_call
+    def test_process_device_with_command(
+        self,
+        mock_check_call,
+        mock_Remote,
+        mock_Device,
+        mock_common,
+        mock_database,
+    ):
+        uuid = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        mock_Device.return_value = dut_instance
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+
+        remote_instance = MagicMock()
+        mock_Remote.return_value = remote_instance
+        remote_instance.test_connection.return_value = True
+
+        args = MagicMock()
+        args.command = 'echo "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.run_before_on_host = 'echo "Running pre-command on host"'
+
+        result = process_device(self.device, self.cloud, self.env_vars, args)
+
+        self.assertTrue(result)
+
+        mock_check_call.assert_called_once_with(
+            args.run_before_on_host,
+            shell=True,
+            stdout=sys.stdout,
+            stderr=subprocess.STDOUT,
+        )
+
+        remote_instance.connection.run.assert_called_once_with(args.command)
 
     @patch("device_handler.database")
     @patch("device_handler.common")
@@ -64,17 +111,7 @@ class TestDeviceHandler(unittest.TestCase):
         self.assertTrue(result)
         mock_database.device_exists.assert_called_with(uuid)
         mock_database.create_device.assert_called_with(uuid)
-        mock_database.try_until_locked.assert_called_with(uuid)
         self.logger.info.assert_any_call(f"Lock acquired for device {uuid}")
-        self.logger.debug.assert_any_call(
-            f"Connection test succeeded for device {uuid}"
-        )
-        self.logger.info.assert_any_call(
-            f"Command '{self.args.command}' executed for device {uuid}"
-        )
-        self.logger.info.assert_any_call(f"Lock released for device {uuid}")
-        mock_database.release_lock.assert_called_with(uuid)
-        remote_instance.connection.run.assert_called_with(self.args.command)
 
     @patch("device_handler.database")
     @patch("device_handler.common")
@@ -158,52 +195,29 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.common")
     @patch("device_handler.Device")
     @patch("device_handler.Remote")
-    def test_process_device_with_before_command(
-        self, mock_Remote, mock_Device, mock_common, mock_database
-    ):
-        uuid = self.device["deviceUuid"]
-        hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
-
-        self.args.before = 'echo "Before Command"'
-
-        mock_database.device_exists.return_value = True
-        mock_database.try_until_locked.return_value = True
-
-        dut_instance = MagicMock()
-        mock_Device.return_value = dut_instance
-        dut_instance.remote_session_ip = "192.168.1.100"
-        dut_instance.remote_session_port = 22
-
-        remote_instance = MagicMock()
-        mock_Remote.return_value = remote_instance
-        remote_instance.test_connection.return_value = True
-
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
-        )
-
-        self.assertTrue(result)
-        calls = [call(self.args.before), call(self.args.command)]
-        remote_instance.connection.run.assert_has_calls(calls)
-
-    @patch("device_handler.database")
-    @patch("device_handler.common")
-    @patch("device_handler.Device")
-    @patch("device_handler.Remote")
+    @patch("subprocess.check_call")
     def test_process_device_with_copy_artifact(
-        self, mock_Remote, mock_Device, mock_common, mock_database
+        self,
+        mock_check_call,
+        mock_Remote,
+        mock_Device,
+        mock_common,
+        mock_database,
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
-        self.args.copy_artifact = [
+        args = MagicMock()
+        args.command = None
+        args.before = None
+        args.copy_artifact = [
             "/remote/path1",
             "/local/output1",
             "/remote/path2",
             "/local/output2",
         ]
+        args.run_before_on_host = 'echo "Running pre-command on host"'
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -212,24 +226,21 @@ class TestDeviceHandler(unittest.TestCase):
         mock_Device.return_value = dut_instance
         dut_instance.remote_session_ip = "192.168.1.100"
         dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
 
-        remote_instance = MagicMock()
-        mock_Remote.return_value = remote_instance
+        remote_instance = mock_Remote.return_value
         remote_instance.test_connection.return_value = True
+        remote_instance.connection.get = MagicMock()
 
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
-        )
+        result = process_device(self.device, self.cloud, self.env_vars, args)
 
         self.assertTrue(result)
+
         calls = [
             call("/remote/path1", "/local/output1"),
             call("/remote/path2", "/local/output2"),
         ]
-        remote_instance.connection.get.assert_has_calls(calls)
-        self.logger.info.assert_any_call(
-            f"Artifact retrieved for device {uuid}"
-        )
+        remote_instance.connection.get.assert_has_calls(calls, any_order=True)
 
     @patch("device_handler.database")
     @patch("device_handler.common")

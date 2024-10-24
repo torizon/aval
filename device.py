@@ -26,12 +26,13 @@ class Device:
         self._latest_build = None
         self._remote_session_time = None
 
+        self.network_info = self._get_network_info()
+        self.architecture = None
         self.remote_session_ip = None
         self.remote_session_port = None
 
     def setup_usual_ssh_session(self):
-        network_info = self._get_network_info()
-        self.remote_session_ip = network_info["localIpV4"]
+        self.remote_session_ip = self.network_info["localIpV4"]
         self.remote_session_port = "22"
 
     def setup_rac_session(self, RAC_IP):
@@ -57,7 +58,7 @@ class Device:
                     "accept": "*/*",
                     "Content-Type": "application/json",
                 },
-                json={
+                json_data={
                     "public_keys": [
                         f"{self._public_key}\n",
                     ],
@@ -83,7 +84,7 @@ class Device:
                 "Authorization": f"Bearer {self._cloud_api.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
         if res is None:
             raise Exception("Failed to get remote session")
@@ -170,7 +171,7 @@ class Device:
             request_type="post",
             body=None,
             headers=headers,
-            json=data,
+            json_data=data,
         )
 
         # FIXME: currently a bug on the Cloud side. Returns 201 when succesfull.
@@ -230,7 +231,7 @@ class Device:
                 "Authorization": f"Bearer {self._cloud_api.token}",
                 "accept": "application/json",
             },
-            json=None,
+            json_data=None,
         )
         if res is None:
             raise Exception("Failed to get network info")

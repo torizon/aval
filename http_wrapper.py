@@ -5,13 +5,14 @@ import json
 logger = logging.getLogger(__name__)
 
 
-def endpoint_call(url, request_type, headers, body, json):
+def endpoint_call(url, request_type, headers=None, body=None, json_data=None):
     headers = headers or {}
+    res = None
     try:
         if request_type == "get":
             res = requests.get(url, headers=headers)
         elif request_type == "post":
-            res = requests.post(url, headers=headers, data=body, json=json)
+            res = requests.post(url, headers=headers, data=body, json=json_data)
         elif request_type == "delete":
             res = requests.delete(url, headers=headers)
         else:
@@ -30,11 +31,11 @@ def endpoint_call(url, request_type, headers, body, json):
         error_message = f"Unexpected Error: {e}"
 
     if "error_message" in locals():
-        if "res" in locals():
+        if res is not None:
             try:
                 logger.error(json.dumps(res.json(), indent=2))
             except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON res: {e}")
+                logger.error(f"Error decoding JSON response: {e}")
         logger.error(error_message)
         raise Exception(error_message)
 

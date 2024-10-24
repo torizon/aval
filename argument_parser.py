@@ -25,7 +25,12 @@ def parse_arguments():
         ),
     )
     parser.add_argument(
-        "command", type=str, help="Command to run on target device."
+        # arguments without leading `--` are assumed to be positional and not
+        # optional. Use nargs='?' to force the last command to be optional.
+        "command",
+        type=str,
+        nargs="?",
+        help="Command to run on target device.",
     )
     parser.add_argument(
         "--before",
@@ -42,5 +47,11 @@ def parse_arguments():
         type=str,
         help="Path of config which tells Aval which device to match.",
     )
+    parser.add_argument(
+        "--run-before-on-host",
+        type=str,
+        help="Command to be executed on host (the machine calling aval) after locking and updating the device.",
+    )
+
     args = parser.parse_args()
     return args
