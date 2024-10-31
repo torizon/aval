@@ -43,7 +43,7 @@ This option mainly exists to use Aval for the TCB/IDE tests.
 
 An example can be found in the `meta-e2e-tests` folder.
 
-We have our test paylod (a container built from `meta-e2e-tests/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests - one passing and one failing.
+We have our test payload (a container built from `meta-e2e-tests/Dockerfile`) that includes the bats-core framework. Test suites can be included in `example/suites` and for now we provide `example/suites/meta`, which contains two tests: one passing and another failing.
 
 `meta-e2e-tests/run-tests.sh` is a bash script that invokes the suite and returns a `report.xml` in the `/home/torizon` folder inside the container, which will be a shared volume with the hosts (that's how Aval gets the junit xml back).
 
@@ -95,12 +95,31 @@ For an example, check the [e2e-tests](./e2e-tests.yml) file. Currently supported
 If you don't care for a particular device, invoking Aval with just a `SOC_ARCHITECTURE=<arm|arm64|...>` will simply lock
 the first device of that architecture.
 
+Note that setting `SOC_ARCHITECTURE` will make Aval ignore `SOC_UDT` and `--device-config`.
+
 ## Device Information
 
 For each locked device, Aval will output a `device_information.json` file to the current directory. The workflow here
 is that one can use this information together with `--run-before-on-host` to execute scripts that already manage an
 SSH connection and "bypass" Aval, utilizing it solely as a board manager. An example of such script can be found in
-the [host_command.sh file](./host_command.sh) and the flag usage can be observed in the [e2e-tests](.e2e-tests.yml) file. 
+the [host_command.sh file](./host_command.sh) and the flag usage can be observed in the [e2e-tests](.e2e-tests.yml) file.
+
+## Environment Variables Glossary
+
+- POSTGRES_DB: name of the Postgres database to hold fleet information.
+- POSTGRES_HOST: host address (ip or hostname) to connect to the database.
+- POSTGRES_PORT: port to connect to the database.
+- POSTGRES_USER: user to login to the database.
+- POSTGRES_PASSWORD: user password to login to the database.
+- TORIZON_API_CLIENT_ID/TORIZON_API_SECRET_ID: Torizon Cloud Credentials. See [How to Use Torizon Cloud API](https://developer.toradex.com/torizon/torizon-platform/torizon-api/#how-to-use-torizon-cloud-api) 
+- PUBLIC_KEY/PRIVATE_KEY: Public Key to be used in conjunction with `USE_RAC`
+- DEVICE_PASSWORD: The actual `torizon` user password for Torizon OS. Note that all devices must have the same password.
+- AVAL_VERBOSE: Makes Aval output all debug information.
+- USE_RAC: Instead of standard SSH, use RAC to get an SSH connection. Allows plugging devices from anywhere.
+- TARGET_BUILD_TYPE: `release` or `nightly`, referring to Torizon OS nightly or quarterly (release) builds.
+- SOC_UDT: Device to be used for the current test. Allowed names are keys in the [PID4 Map file](./pid_map.yaml).
+- SOC_ARCHITECTURE: Architecture of Device to be used for current test. If `SOC_ARCHITECTURE` is set, it will ignore both `SOC_UDT` and `--device-config` and lock the first device of a given architecture. Allowed architectures can be found as values for the `architecture` key under each `SOC_UDT` name in the [PID4 Map file](./pid_map.yaml).
+- TEST_WHOLE_FLEET: If `TEST_WHOLE_FLEET` is set, ignores `SOC_ARCHITECTURE`, `SOC_UDT` and `--device-config`.
 
 ## Contributing
 
