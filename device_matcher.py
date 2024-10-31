@@ -3,6 +3,7 @@ import sys
 import convolute
 import common
 import config_loader
+import re
 
 
 def find_possible_devices(cloud, args, env_vars):
@@ -34,9 +35,16 @@ def find_possible_devices(cloud, args, env_vars):
         possible_duts = []
         for device in cloud.provisioned_devices:
             pid4 = device.get("notes")
+
             if not pid4:
                 logger.error(
                     f"The following device has no PID4 set in the `notes` field: {device}"
+                )
+                continue
+
+            if not re.fullmatch(r"\d{4}", pid4):
+                logger.error(
+                    f"The following device has an invalid PID4 '{pid4}' in the `notes` field: {device}"
                 )
                 continue
 
