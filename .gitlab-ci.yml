@@ -62,3 +62,10 @@ unit-test:
         path: coverage.xml
   needs:
     - aval-container-build
+
+flake8-lint:
+  image: python:3.12
+  script:
+    - pip install flake8
+    - flake8 --ignore=E501,W503
+  allow_failure: true
