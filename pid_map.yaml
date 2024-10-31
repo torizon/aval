@@ -1,3 +1,5 @@
+%YAML 1.1
+---
 common_props_default: &common_props_default
   soc_vpu: true
   soc_gpu: true

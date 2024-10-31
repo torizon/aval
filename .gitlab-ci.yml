@@ -86,3 +86,13 @@ flake8-lint:
     - pip install flake8
     - flake8 --ignore=E501,W503
   allow_failure: true
+
+# This job exists because we use YAML 1.1 as supported by pyyaml, yq, yamllint
+# and a bunch of other tools. However, YAML 1.2 is slowly being rolled out in
+# the next years, so when this job starts to fail, it's probably a good
+# indication we should update because tools are moving to 1.2 as the default.
+validate-yaml:
+  image: node:latest
+  script:
+    - npm install yaml
+    - node validate_yaml.js
