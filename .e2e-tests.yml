@@ -32,11 +32,6 @@ e2e-test-apalis-imx6q-release:
   variables:
     SOC_UDT: "apalis-imx6q"
 
-e2e-test-apalis-imx8qm-release:
-  extends: .e2e-test-template
-  variables:
-    SOC_UDT: "apalis-imx8qm"
-
 e2e-test-colibri-imx8dx-release:
   extends: .e2e-test-template
   variables:
