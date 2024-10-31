@@ -6,10 +6,9 @@ import logging
 import time
 
 from cloud import CloudAPI
+from http_wrapper import endpoint_call
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
-
-from http_wrapper import endpoint_call
 
 
 class Device:
@@ -69,10 +68,10 @@ class Device:
         except Exception as e:
             if res and res.status_code == 409:
                 self._log.info(
-                    f"409 Conflict: Session already exists, attempting to retrieve existing session."
+                    "409 Conflict: Session already exists, attempting to retrieve existing session."
                 )
                 return self._get_remote_session()
-
+            logging.error(e)
         return self._get_remote_session()
 
     def _get_remote_session(self):
@@ -114,7 +113,7 @@ class Device:
 
     def refresh_remote_session(self):
         try:
-            res = endpoint_call(
+            _ = endpoint_call(
                 url=API_BASE_URL
                 + f"/remote-access/device/{self._uuid}/sessions",
                 request_type="delete",
@@ -209,7 +208,7 @@ class Device:
             self._cloud_api.get_assigment_status_for_device(self._uuid)
         )
 
-        while inflight != True:
+        while inflight is not True:
             inflight = self._cloud_api.extract_in_flight(
                 self._cloud_api.get_assigment_status_for_device(self._uuid)
             )

@@ -1,6 +1,6 @@
 import unittest
 
-from common import *
+from common import parse_device_id, parse_hardware_id
 
 device_id_dict = {
     "verdin-imx8mm-07214001-9334fa": "imx8mm",

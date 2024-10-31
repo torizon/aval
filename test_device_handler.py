@@ -45,7 +45,7 @@ class TestDeviceHandler(unittest.TestCase):
         mock_common,
         mock_database,
     ):
-        uuid = self.device["deviceUuid"]
+        _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
@@ -204,7 +204,7 @@ class TestDeviceHandler(unittest.TestCase):
         mock_common,
         mock_database,
     ):
-        uuid = self.device["deviceUuid"]
+        _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
@@ -251,7 +251,7 @@ class TestDeviceHandler(unittest.TestCase):
     ):
         self.env_vars["USE_RAC"] = True
 
-        uuid = self.device["deviceUuid"]
+        _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 

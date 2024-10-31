@@ -1,5 +1,4 @@
 from cloud import CloudAPI
-import logging
 import sys
 
 import logging_setup

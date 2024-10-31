@@ -1,8 +1,6 @@
 # The name of this module is "convolute" because "filter" is a Python keyword
 # and most of us are EEs anyway.
 
-import yaml
-import toml
 import logging
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,10 @@ os.environ["POSTGRES_PASSWORD"] = "test_password"
 os.environ["POSTGRES_HOST"] = "localhost"
 os.environ["POSTGRES_PORT"] = "5432"
 
-import database
+# E402 requires imports to be on top of the file, but we must export the
+# POSTGRES* environment variables before `import`ing `database`, so we
+# ignore the linter in this case.
+import database  # noqa: E402
 
 
 class TestDatabase(unittest.TestCase):
