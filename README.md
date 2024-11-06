@@ -66,7 +66,7 @@ $ docker run -it -v $(pwd):/aval --workdir=/aval python:latest bash
 
 To run a test (echo Hello) on a provisioned Apalis iMX8 QuadMax
 ```
-# eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"`
+# eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"
 ```
 
 ## Aval's Database
