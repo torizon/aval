@@ -48,6 +48,7 @@ class TestDeviceMatcher(unittest.TestCase):
         self.cloud.provisioned_devices = self.sample_devices
         self.args = MagicMock()
         self.args.device_config = None
+        self.args.pid_map = None
         self.env_vars = {
             "TEST_WHOLE_FLEET": False,
             "TARGET_BUILD_TYPE": "some_build_type",

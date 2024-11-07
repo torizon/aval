@@ -37,7 +37,7 @@ def find_possible_devices(cloud, args, env_vars):
     if test_whole_fleet:
         possible_duts = cloud.provisioned_devices
     else:
-        pid4_map = config_loader.load_pid_map()
+        pid4_map = config_loader.load_pid_map(pid_map_path=args.pid_map)
         possible_duts = []
 
         if args.device_config:

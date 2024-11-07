@@ -52,6 +52,11 @@ def parse_arguments():
         type=str,
         help="Command to be executed on host (the machine calling aval) after locking and updating the device.",
     )
+    parser.add_argument(
+        "--pid-map",
+        type=str,
+        help="Path of a PID4 map yaml file describing devices and their properties. By default it tries to use a `pid_map.yaml` located in the directory where Aval is called from.",
+    )
 
     args = parser.parse_args()
     return args
