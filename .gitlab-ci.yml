@@ -79,6 +79,8 @@ unit-test-windows:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+  needs:
+    - aval-container-build
 
 flake8-lint:
   image: python:3.12

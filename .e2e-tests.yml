@@ -3,6 +3,7 @@
   variables:
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"
+    GIT_STRATEGY: none
   script:
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
