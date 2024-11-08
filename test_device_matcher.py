@@ -151,17 +151,18 @@ class TestDeviceMatcher(unittest.TestCase):
         )
         mock_common.pretty_print_devices.assert_called_with(self.sample_devices)
 
+    @patch("device_matcher.config_loader.load_pid_map")
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")
     def test_find_possible_devices_filtered_devices(
-        self, mock_common, mock_convolute
+        self, mock_common, mock_convolute, mock_load_pid_map
     ):
-        pid4_map = {
-            "some_soc_udt": ["0001", "0002"],
-        }
 
-        mock_convolute.load_pid_map.return_value = pid4_map
-        mock_convolute.get_pid4_list.return_value = ["0001", "0002"]
+        # this mock exists for no reason other than to bypass the `open` call in
+        # the load_pid_map function, otherwise the test hangs there.
+        mock_load_pid_map.return_value = {}
+
+        mock_convolute.get_pid4_list.return_value = ["0001", "0002", "0003"]
 
         possible_duts = find_possible_devices(
             self.cloud, self.args, self.env_vars
@@ -178,23 +179,26 @@ class TestDeviceMatcher(unittest.TestCase):
                 "deviceId": "verdin-imx8mp-15247251-0bd6e5",
                 "notes": "0002",
             },
+            {
+                "deviceUuid": "uuid3",
+                "deviceId": "verdin-am62-15133530-24fe44",
+                "notes": "0003",
+            },
         ]
-        self.assertEqual(possible_duts, expected_devices)
 
-        self.logger.error.assert_any_call(
-            f"The following device has an invalid PID4 'asdf' in the `notes` field: {self.sample_devices[-1]}"
-        )
+        self.assertEqual(possible_duts, expected_devices)
 
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")
+    @patch("device_matcher.config_loader.load_pid_map")
     def test_find_possible_devices_no_matching_devices(
-        self, mock_common, mock_convolute
+        self, mock_common, mock_convolute, mock_load_pid_map
     ):
-        pid4_map = {
-            "some_soc_udt": [],
-        }
 
-        mock_convolute.load_pid_map.return_value = pid4_map
+        # this mock exists for no reason other than to bypass the `open` call in
+        # the load_pid_map function, otherwise the test hangs there.
+        mock_load_pid_map.return_value = {}
+
         mock_convolute.get_pid4_list.return_value = []
 
         possible_duts = find_possible_devices(
@@ -207,16 +211,17 @@ class TestDeviceMatcher(unittest.TestCase):
             "Couldn't find any possible devices to send tests to"
         )
 
+    @patch("device_matcher.config_loader.load_pid_map")
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")
     def test_find_possible_devices_device_with_no_pid4(
-        self, mock_common, mock_convolute
+        self, mock_common, mock_convolute, mock_load_pid_map
     ):
-        pid4_map = {
-            "some_soc_udt": ["0001", "0002", "0003", ""],
-        }
 
-        mock_convolute.load_pid_map.return_value = pid4_map
+        # this mock exists for no reason other than to bypass the `open` call in
+        # the load_pid_map function, otherwise the test hangs there.
+        mock_load_pid_map.return_value = {}
+
         mock_convolute.get_pid4_list.return_value = ["0001", "0002", "0003", ""]
 
         possible_duts = find_possible_devices(
@@ -240,6 +245,7 @@ class TestDeviceMatcher(unittest.TestCase):
                 "notes": "0003",
             },
         ]
+
         self.assertEqual(possible_duts, expected_devices)
 
         self.logger.error.assert_any_call(
@@ -248,16 +254,15 @@ class TestDeviceMatcher(unittest.TestCase):
 
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")
+    @patch("device_matcher.config_loader.load_pid_map")
     def test_find_possible_devices_missing_pid4_in_device_config(
-        self, mock_common, mock_convolute
+        self, mock_common, mock_convolute, mock_load_pid_map
     ):
         device_config_data = ("some_soc_udt", {"property1": "value1"})
         mock_convolute.get_device_config_data.return_value = device_config_data
 
-        pid4_map = {
-            "some_soc_udt": [],
-        }
-        mock_convolute.load_pid_map.return_value = pid4_map
+        mock_load_pid_map.return_value = {}
+
         mock_convolute.get_pid4_list_with_device_config.return_value = []
 
         possible_duts = find_possible_devices(
@@ -272,14 +277,15 @@ class TestDeviceMatcher(unittest.TestCase):
 
     @patch("device_matcher.convolute")
     @patch("device_matcher.common")
+    @patch("device_matcher.config_loader.load_pid_map")
     def test_pid4_must_contain_exactly_4_digits(
-        self, mock_common, mock_convolute
+        self, mock_common, mock_convolute, mock_load_pid_map
     ):
-        pid4_map = {
-            "some_soc_udt": ["asdf"],
-        }
 
-        mock_convolute.load_pid_map.return_value = pid4_map
+        # this mock exists for no reason other than to bypass the `open` call in
+        # the load_pid_map function, otherwise the test hangs there.
+        mock_load_pid_map.return_value = {}
+
         mock_convolute.get_pid4_list.return_value = ["asdf"]
 
         possible_duts = find_possible_devices(

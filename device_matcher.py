@@ -67,7 +67,6 @@ def find_possible_devices(cloud, args, env_vars):
                 continue
 
             # No need to reset pid4_targets inside the loop
-
             if pid4 in pid4_targets:
                 possible_duts.append(device)
 
