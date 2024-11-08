@@ -58,7 +58,7 @@ First, fill in the information from the provided `.env.template` into a new `.en
 The easiest way to develop is setting up a mountpoint inside the Python container like so
 
 ```
-$ docker run -it -v $(pwd):/aval --workdir=/aval python:latest bash
+$ docker run -it -v $(pwd):/aval --workdir=/aval python:3.12 bash
 # make install
 # make test
 # make format
@@ -67,6 +67,19 @@ $ docker run -it -v $(pwd):/aval --workdir=/aval python:latest bash
 To run a test (echo Hello) on a provisioned Apalis iMX8 QuadMax
 ```
 # eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"
+```
+
+If you want to run it outside of a container, you *must* ensure that you're using Python 3.12 instead of 3.13.
+
+With `brew` you should run the following:
+
+```
+$ brew install python@3.12
+$ python3.12 -m venv venv
+$ source venv/bin/activate
+$ make install
+$ make test
+$ make format
 ```
 
 ## Aval's Database
