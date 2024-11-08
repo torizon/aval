@@ -17,7 +17,7 @@ check_flake8:
 
 .PHONY: lint
 lint: check_flake8
-	$(FLAKE8) --ignore=E501,W503
+	$(FLAKE8) --ignore=E501,W503 --exclude venv
 
 .PHONY: format
 format: check_black
