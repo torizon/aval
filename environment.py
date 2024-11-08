@@ -11,7 +11,7 @@ def load_environment_variables(args):
 
     if not args.device_config:
         soc_architecture = os.environ.get("SOC_ARCHITECTURE")
-        if not soc_architecture:
+        if not soc_architecture and not test_whole_fleet:
             try:
                 soc_udt = os.environ["SOC_UDT"]
             except KeyError as e:
