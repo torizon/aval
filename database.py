@@ -71,7 +71,7 @@ def create_device(device_uuid):
             conn.commit()
 
 
-def try_until_locked(device_uuid, interval=30, sleep=180):
+def try_until_locked(device_uuid, interval=80, sleep=90):
     while interval > 0:
         if acquire_lock(device_uuid):
             logger.info(f"Device {device_uuid} successfully locked.")
