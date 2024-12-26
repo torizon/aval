@@ -1,5 +1,12 @@
+.skip_on_watch: &skip_on_watch
+  rules:
+    - if: $WATCH
+      when: never
+    - when: on_success
+
 .e2e-test-template:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
+  <<: *skip_on_watch
   variables:
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"
@@ -98,6 +105,7 @@ e2e-test-verdin-imx8mpq-nightly:
 
 e2e-test-verdin-imx8mpq-npu-release:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
+  <<: *skip_on_watch
   variables:
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"

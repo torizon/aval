@@ -1,0 +1,10 @@
+[project]
+name = "sentry"
+version = "0.0.1"
+description = "Sentry is an Aval sister project that watches over its database"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "psycopg-binary>=3.2.3",
+    "psycopg2-binary>=2.9.10",
+]

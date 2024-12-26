@@ -34,7 +34,7 @@ def acquire_lock(device_uuid):
             result = cursor.fetchone()
             if result and not result[0]:
                 cursor.execute(
-                    "UPDATE devices SET is_locked = TRUE WHERE device_uuid = %s",
+                    "UPDATE devices SET is_locked = TRUE, timestamp = NOW() WHERE device_uuid = %s",
                     (device_uuid,),
                 )
                 conn.commit()

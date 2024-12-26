@@ -1,13 +1,22 @@
 include:
   - ".e2e-tests.yml"
+  - "sentry/.sentry-watch.yml"
+  
+.skip_on_watch: &skip_on_watch
+  rules:
+    - if: $WATCH
+      when: never
+    - when: on_success
 
 lint:
+  <<: *skip_on_watch
   image: registry.gitlab.com/pipeline-components/black:latest
   script:
     - black --check --verbose --line-length 80 -- *.py
 
 aval-container-build:
   image: docker:dind
+  <<: *skip_on_watch
   services:
     - name: docker:dind
   variables:
@@ -29,6 +38,7 @@ aval-container-build:
 
 e2e-tests-container-build:
   image: docker:dind
+  <<: *skip_on_watch
   services:
     - name: docker:dind
   variables:
@@ -51,6 +61,7 @@ e2e-tests-container-build:
 
 unit-test:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
+  <<: *skip_on_watch
   script:
     - coverage run -m unittest discover -v -s . -p 'test_*.py'
     - coverage report -m
@@ -64,6 +75,7 @@ unit-test:
     - aval-container-build
 
 unit-test-windows:
+  <<: *skip_on_watch
   tags:
     - vstudio
   script:
@@ -101,6 +113,7 @@ validate-yaml:
 
 release:
   image: docker:dind
+  <<: *skip_on_watch
   stage: deploy
   services:
     - docker:dind

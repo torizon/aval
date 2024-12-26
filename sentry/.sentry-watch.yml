@@ -1,0 +1,45 @@
+.run_on_watch: &run_on_watch
+  rules:
+    - if: $WATCH
+      when: always
+    - when: never
+
+sentry-container-build:
+  image: docker:dind
+  <<: *run_on_watch
+  services:
+    - name: docker:dind
+  variables:
+    TORADEX_INTERNAL_DOCKERHUB_CACHE: "artifactory-horw.int.toradex.com/dockerhub-proxy-horw"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx create --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
+    - docker buildx inspect --bootstrap
+    - docker run --privileged --rm ${TORADEX_INTERNAL_DOCKERHUB_CACHE}/tonistiigi/binfmt --install arm64,arm
+    - docker buildx build
+      --progress=plain
+      --push
+      --platform linux/arm64/v8,linux/amd64
+      -f sentry/Dockerfile
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME} .
+  rules:
+    - if: $WATCH
+      when: always
+    - when: never
+  
+sentry-watch:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
+  <<: *run_on_watch
+  script: cd /sentry && uv run main.py
+  needs:
+    - sentry-container-build
+  rules:
+    - if: $WATCH
+      when: always
+    - when: never
+  variables:
+    GIT_STRATEGY: none
