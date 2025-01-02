@@ -2,6 +2,7 @@ import logging
 import sys
 import json
 import subprocess
+import time
 
 import database
 import common
@@ -28,28 +29,33 @@ def process_device(device, cloud, env_vars, args):
 
             if not dut.is_os_updated_to_latest(env_vars["TARGET_BUILD_TYPE"]):
                 dut.update_to_latest(env_vars["TARGET_BUILD_TYPE"])
-                # If this is true again, a rollback happened
                 if not dut.is_os_updated_to_latest(
                     env_vars["TARGET_BUILD_TYPE"]
                 ):
-                    raise Exception(
-                        f"The update wasn't succesfull: the device {uuid} most likely rollbacked."
+                    logger.error(
+                        f"Update unsuccessful for {uuid}: trying to get Aktualizr logs and raising an exception. This might take some time."
+                    )
+                    logger.info(
+                        f"Trying an early SSH connection to {dut.remote_session_ip}:{dut.remote_session_port}. If the device didn't roll back successfully this might not work."
                     )
 
-            if env_vars["USE_RAC"]:
-                dut.setup_rac_session(RAC_IP)
-            else:
-                dut.setup_usual_ssh_session()
+                    # Wait for the device to come back up
+                    time.sleep(300)
 
-            remote = Remote(
-                dut.remote_session_ip,
-                dut.remote_session_port,
-                env_vars["DEVICE_PASSWORD"],
-            )
+                    try:
+                        remote = Remote(dut, env_vars)
+                        remote.connection.run(
+                            "journalctl -u aktualizr-torizon --no-pager"
+                        )
+                    except ConnectionError as e:
+                        logger.error(
+                            f"Failed to connect to device {uuid} for log retrieval: {str(e)}"
+                        )
 
-            if remote.test_connection():
-                logger.debug(f"Connection test succeeded for device {uuid}")
+                    raise Exception(f"Update unsuccessful for {uuid}.")
 
+            try:
+                remote = Remote(dut, env_vars)
                 logger.debug(dut.network_info)
 
                 if dut.network_info:
@@ -83,8 +89,13 @@ def process_device(device, cloud, env_vars, args):
                         )
                         remote.connection.get(remote_path, local_output)
                         logger.info(f"Artifact retrieved for device {uuid}")
-            else:
-                logger.error(f"Connection test failed for device {uuid}")
+
+            except ConnectionError as e:
+                logger.error(
+                    f"Failed to establish connection with device {uuid}: {str(e)}"
+                )
+                raise
+
         except Exception as e:
             logger.error(
                 f"An error occurred while processing device {uuid}: {e}"
@@ -94,7 +105,6 @@ def process_device(device, cloud, env_vars, args):
             database.release_lock(uuid)
             logger.info(f"Lock released for device {uuid}")
 
-        # Successfully processed the device
         return True
     else:
         logger.info(f"Failed to acquire lock for device {uuid}")
