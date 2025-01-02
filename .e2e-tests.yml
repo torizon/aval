@@ -50,10 +50,26 @@ e2e-test-verdin-imx8mmq-release:
   variables:
     SOC_UDT: "verdin-imx8mmq"
 
+e2e-test-colibri-imx6ull-emmc-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "colibri-imx6ull-emmc"
+
 e2e-test-verdin-imx8mpq-release:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "verdin-imx8mpq"
+
+e2e-test-colibri-imx6dl-release:
+  extends: .e2e-test-template
+  variables:
+    SOC_UDT: "colibri-imx6dl"
+
+e2e-test-colibri-imx6dl-nightly:
+  extends: .e2e-test-template
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_UDT: "colibri-imx6dl"
 
 e2e-test-colibri-imx7d-emmc-nightly:
   extends: .e2e-test-template
@@ -102,6 +118,12 @@ e2e-test-verdin-imx8mpq-nightly:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "verdin-imx8mpq"
+
+e2e-test-colibri-imx6ull-emmc-nightly:
+  extends: .e2e-test-template
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_UDT: "colibri-imx6ull-emmc"
 
 e2e-test-verdin-imx8mpq-npu-release:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
