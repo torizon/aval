@@ -18,13 +18,13 @@ class Device:
         logging.debug(f"Initializing Device object {hardware_id} for {uuid}")
 
         self._cloud_api = cloud_api
-        self._uuid = uuid
         self._hardware_id = hardware_id
         self._public_key = public_key
         self._current_build = None
         self._latest_build = None
         self._remote_session_time = None
 
+        self.uuid = uuid
         self.network_info = self._get_network_info()
         self.architecture = None
         self.remote_session_ip = None
@@ -49,7 +49,7 @@ class Device:
         try:
             res = endpoint_call(
                 url=API_BASE_URL
-                + f"/remote-access/device/{self._uuid}/sessions",
+                + f"/remote-access/device/{self.uuid}/sessions",
                 request_type="post",
                 body=None,
                 headers={
@@ -76,7 +76,7 @@ class Device:
 
     def _get_remote_session(self):
         res = endpoint_call(
-            url=API_BASE_URL + f"/remote-access/device/{self._uuid}/sessions",
+            url=API_BASE_URL + f"/remote-access/device/{self.uuid}/sessions",
             request_type="get",
             body=None,
             headers={
@@ -89,7 +89,7 @@ class Device:
             raise Exception("Failed to get remote session")
 
         self._log.info(
-            f'Remote session created for {self._uuid} on port {res.json()["ssh"]["reverse_port"]} expiring at {res.json()["ssh"]["expires_at"]}'
+            f'Remote session created for {self.uuid} on port {res.json()["ssh"]["reverse_port"]} expiring at {res.json()["ssh"]["expires_at"]}'
         )
         return res.json()["ssh"]["reverse_port"], dateutil.parser.parse(
             res.json()["ssh"]["expires_at"]
@@ -115,7 +115,7 @@ class Device:
         try:
             _ = endpoint_call(
                 url=API_BASE_URL
-                + f"/remote-access/device/{self._uuid}/sessions",
+                + f"/remote-access/device/{self.uuid}/sessions",
                 request_type="delete",
                 body=None,
                 headers={
@@ -131,11 +131,11 @@ class Device:
 
         except requests.RequestException as e:
             self._log.error(
-                f"Request exception occurred during remote session deletion for {self._uuid}: {str(e)}"
+                f"Request exception occurred during remote session deletion for {self.uuid}: {str(e)}"
             )
 
     def get_current_build(self):
-        metadata = self._cloud_api.get_package_metadata_for_device(self._uuid)
+        metadata = self._cloud_api.get_package_metadata_for_device(self.uuid)
         for device in metadata:
             for pkg in device["installedPackages"]:
                 logging.debug(pkg)
@@ -147,7 +147,7 @@ class Device:
                     )
                     return current_build
 
-        raise Exception(f"Couldn't parse the current build for {self._uuid}")
+        raise Exception(f"Couldn't parse the current build for {self.uuid}")
 
     def launch_update(self, build):
         headers = {
@@ -162,7 +162,7 @@ class Device:
                     "uri": "https://tzn-ota-tdxota.s3.amazonaws.com/ostree-repo/"
                 }
             },
-            "devices": [self._uuid],
+            "devices": [self.uuid],
         }
 
         res = endpoint_call(
@@ -193,7 +193,7 @@ class Device:
 
         if current_build == self._latest_build:
             logging.info(
-                f"Device {self._uuid} is already on latest build {current_build}"
+                f"Device {self.uuid} is already on latest build {current_build}"
             )
             return True
         return False
@@ -205,25 +205,25 @@ class Device:
         logging.info("Waiting until update is complete...")
 
         inflight = self._cloud_api.extract_in_flight(
-            self._cloud_api.get_assigment_status_for_device(self._uuid)
+            self._cloud_api.get_assigment_status_for_device(self.uuid)
         )
 
         while inflight is not True:
             inflight = self._cloud_api.extract_in_flight(
-                self._cloud_api.get_assigment_status_for_device(self._uuid)
+                self._cloud_api.get_assigment_status_for_device(self.uuid)
             )
             time.sleep(15)
 
         logging.info(
             "The device has seen the update request and will download and install it now"
         )
-        while self._cloud_api.get_assigment_status_for_device(self._uuid) != []:
+        while self._cloud_api.get_assigment_status_for_device(self.uuid) != []:
             logging.info("Still updating...")
             time.sleep(60)
 
     def _get_network_info(self):
         res = endpoint_call(
-            url=API_BASE_URL + f"/devices/network/{self._uuid}",
+            url=API_BASE_URL + f"/devices/network/{self.uuid}",
             request_type="get",
             body=None,
             headers={
@@ -235,5 +235,5 @@ class Device:
         if res is None:
             raise Exception("Failed to get network info")
 
-        self._log.info(f"Obtained network info for {self._uuid}")
+        self._log.info(f"Obtained network info for {self.uuid}")
         return res.json()
