@@ -25,6 +25,7 @@ def get_db_connection():
 
 
 def acquire_lock(device_uuid):
+    logger.info(f"Attempting to acquire lock for device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -38,11 +39,18 @@ def acquire_lock(device_uuid):
                     (device_uuid,),
                 )
                 conn.commit()
+                logger.info(
+                    f"Lock acquired successfully for device {device_uuid}"
+                )
                 return True
+            logger.info(
+                f"Failed to acquire lock for device {device_uuid}. Device is already locked or doesn't exist."
+            )
             return False
 
 
 def release_lock(device_uuid):
+    logger.info(f"Attempting to release lock for device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -50,18 +58,25 @@ def release_lock(device_uuid):
                 (device_uuid,),
             )
             conn.commit()
+            logger.info(f"Lock released for device {device_uuid}")
 
 
 def device_exists(device_uuid):
+    logger.info(f"Checking if device {device_uuid} exists")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT 1 FROM devices WHERE device_uuid = %s", (device_uuid,)
             )
-            return cursor.fetchone() is not None
+            exists = cursor.fetchone() is not None
+            logger.info(
+                f"Device {device_uuid} {'exists' if exists else 'does not exist'}"
+            )
+            return exists
 
 
 def create_device(device_uuid):
+    logger.info(f"Attempting to create device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -69,10 +84,15 @@ def create_device(device_uuid):
                 (device_uuid,),
             )
             conn.commit()
+            logger.info(f"Device {device_uuid} created successfully")
 
 
-def try_until_locked(device_uuid, interval=80, sleep=90):
-    while interval > 0:
+def try_until_locked(device_uuid, max_attempts=80, sleep=90, fail_fast=True):
+    if fail_fast:
+        return acquire_lock(device_uuid)
+
+    attempts = 0
+    while attempts < max_attempts:
         if acquire_lock(device_uuid):
             logger.info(f"Device {device_uuid} successfully locked.")
             return True
@@ -81,5 +101,8 @@ def try_until_locked(device_uuid, interval=80, sleep=90):
                 f"Device {device_uuid} is already locked. Retrying in {sleep} seconds..."
             )
             time.sleep(sleep)
-            interval = interval - 1
-    raise Exception(f"Wasn't able to lock the device {device_uuid} in time. :(")
+            attempts += 1
+
+    raise Exception(
+        f"Wasn't able to lock the device {device_uuid} after {max_attempts} attempts. :("
+    )

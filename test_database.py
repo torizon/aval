@@ -28,24 +28,29 @@ class TestDatabase(unittest.TestCase):
         )
 
     @patch("database.acquire_lock")
-    def test_try_until_locked_failure(self, mock_acquire_lock):
+    @patch("database.time.sleep")
+    @patch("database.logger")
+    def test_try_until_locked_failure(
+        self, mock_logger, mock_sleep, mock_acquire_lock
+    ):
         mock_acquire_lock.return_value = False
+        device_uuid = "5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE"
 
         with self.assertRaises(Exception) as context:
             database.try_until_locked(
-                "5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE", interval=3, sleep=0.1
+                device_uuid, max_attempts=3, sleep=0.1, fail_fast=False
             )
 
         self.assertEqual(
             str(context.exception),
-            "Wasn't able to lock the device 5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE in time. :(",
+            "Wasn't able to lock the device 5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE after 3 attempts. :(",
         )
 
         self.assertEqual(mock_acquire_lock.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 3)
 
-        mock_acquire_lock.assert_called_with(
-            "5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE"
-        )
+        mock_acquire_lock.assert_called_with(device_uuid)
+        mock_sleep.assert_called_with(0.1)
 
 
 if __name__ == "__main__":

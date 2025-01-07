@@ -27,10 +27,11 @@ def main():
 
     possible_duts = device_matcher.find_possible_devices(cloud, args, env_vars)
 
-    for device in possible_duts:
-        success = device_handler.process_device(device, cloud, env_vars, args)
-        if success and not env_vars["TEST_WHOLE_FLEET"]:
-            sys.exit(0)
+    if (
+        device_handler.process_devices(possible_duts, cloud, env_vars, args)
+        and not env_vars["TEST_WHOLE_FLEET"]
+    ):
+        sys.exit(0)
 
     if not env_vars["TEST_WHOLE_FLEET"]:
         # EX_UNAVAILABLE 69	/* service unavailable */ sysexits.h

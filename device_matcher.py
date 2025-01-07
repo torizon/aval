@@ -75,6 +75,7 @@ def find_possible_devices(cloud, args, env_vars):
         sys.exit(1)
     else:
         logger.info("Found these devices to send tests to:")
+        logger.debug(possible_duts)
         logger.info(common.pretty_print_devices(possible_duts))
 
     return possible_duts

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch, call
 import sys
 import subprocess
 
-from device_handler import process_device
+from device_handler import process_devices
 
 
 class TestDeviceHandler(unittest.TestCase):
@@ -23,6 +23,7 @@ class TestDeviceHandler(unittest.TestCase):
             "deviceId": "verdin-imx8mm-07214001-9334fa",
             "notes": "pid4_1",
         }
+        self.devices = [self.device]
         self.cloud = MagicMock()
         self.env_vars = {
             "PUBLIC_KEY": "public_key_content",
@@ -68,7 +69,7 @@ class TestDeviceHandler(unittest.TestCase):
         args.copy_artifact = None
         args.run_before_on_host = 'echo "Running pre-command on host"'
 
-        result = process_device(self.device, self.cloud, self.env_vars, args)
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
 
         self.assertTrue(result)
 
@@ -104,8 +105,8 @@ class TestDeviceHandler(unittest.TestCase):
         mock_Remote.return_value = remote_instance
         remote_instance.test_connection.return_value = True
 
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
+        result = process_devices(
+            self.devices, self.cloud, self.env_vars, self.args
         )
 
         self.assertTrue(result)
@@ -136,7 +137,7 @@ class TestDeviceHandler(unittest.TestCase):
 
         mock_Remote.side_effect = ConnectionError("Connection test failed")
 
-        process_device(self.device, self.cloud, self.env_vars, self.args)
+        process_devices(self.devices, self.cloud, self.env_vars, self.args)
 
         self.mock_sys_exit.assert_called_once_with(1)
         self.logger.error.assert_called_with(
@@ -160,7 +161,7 @@ class TestDeviceHandler(unittest.TestCase):
 
         mock_Device.side_effect = Exception("Device initialization failed")
 
-        process_device(self.device, self.cloud, self.env_vars, self.args)
+        process_devices(self.devices, self.cloud, self.env_vars, self.args)
 
         self.logger.error.assert_called_with(
             f"An error occurred while processing device {uuid}: Device initialization failed"
@@ -173,21 +174,17 @@ class TestDeviceHandler(unittest.TestCase):
     def test_process_device_failed_to_acquire_lock(
         self, mock_common, mock_database
     ):
-        uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = False
 
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
+        result = process_devices(
+            self.devices, self.cloud, self.env_vars, self.args
         )
 
         self.assertFalse(result)
-        self.logger.info.assert_called_with(
-            f"Failed to acquire lock for device {uuid}"
-        )
 
     @patch("device_handler.database")
     @patch("device_handler.common")
@@ -230,7 +227,7 @@ class TestDeviceHandler(unittest.TestCase):
         remote_instance.test_connection.return_value = True
         remote_instance.connection.get = MagicMock()
 
-        result = process_device(self.device, self.cloud, self.env_vars, args)
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
 
         self.assertTrue(result)
 
@@ -265,8 +262,8 @@ class TestDeviceHandler(unittest.TestCase):
         mock_Remote.return_value = remote_instance
         remote_instance.test_connection.return_value = True
 
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
+        result = process_devices(
+            self.devices, self.cloud, self.env_vars, self.args
         )
 
         self.assertTrue(result)
@@ -284,8 +281,8 @@ class TestDeviceHandler(unittest.TestCase):
 
         mock_database.device_exists.return_value = False
 
-        result = process_device(
-            self.device, self.cloud, self.env_vars, self.args
+        result = process_devices(
+            self.devices, self.cloud, self.env_vars, self.args
         )
 
         self.assertTrue(result)
