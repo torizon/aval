@@ -157,11 +157,6 @@ class Device:
         }
         data = {
             "packageIds": [build],
-            "custom": {
-                build: {
-                    "uri": "https://tzn-ota-tdxota.s3.amazonaws.com/ostree-repo/"
-                }
-            },
             "devices": [self.uuid],
         }
 
