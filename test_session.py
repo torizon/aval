@@ -33,13 +33,15 @@ class TestDeviceInitialization(unittest.TestCase):
             ),
         )
 
-        env_vars = {""}
+        env_vars = {
+            "DEVICE_PASSWORD": "secret",
+            "PUBLIC_KEY": "ssh-rsa",
+        }
 
         device = Device(
             cloud_api=mock_cloud_api,
             uuid="test-uuid",
             hardware_id="test-hardware-id",
-            public_key="test-public-key",
             env_vars=env_vars,
         )
 
@@ -79,12 +81,15 @@ class TestDeviceInitialization(unittest.TestCase):
             ),
         )
 
-        env_vars = {""}
+        env_vars = {
+            "DEVICE_PASSWORD": "secret",
+            "PUBLIC_KEY": "ssh-rsa",
+        }
+
         device = Device(
             cloud_api=mock_cloud_api,
             uuid="test-uuid",
             hardware_id="test-hardware-id",
-            public_key="test-public-key",
             env_vars=env_vars,
         )
 

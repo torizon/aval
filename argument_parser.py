@@ -57,6 +57,13 @@ def parse_arguments():
         type=str,
         help="Path of a PID4 map yaml file describing devices and their properties. By default it tries to use a `pid_map.yaml` located in the directory where Aval is called from.",
     )
+    parser.add_argument(
+        "--ignore-different-secondaries-between-updates",
+        action="store_true",
+        help=(
+            "Enable workaround for update paths with conflicting secondaries"
+        ),
+    )
 
     args = parser.parse_args()
     return args

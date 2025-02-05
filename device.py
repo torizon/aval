@@ -14,20 +14,19 @@ RAC_IP = "ras.torizon.io"
 
 
 class Device:
-    def __init__(
-        self, cloud_api: CloudAPI, uuid, hardware_id, public_key, env_vars
-    ):
+    def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, env_vars):
         self._log = logging.getLogger(__name__)
 
         logging.debug(f"Initializing Device object {hardware_id} for {uuid}")
 
         self._cloud_api = cloud_api
         self._hardware_id = hardware_id
-        self._public_key = public_key
         self._current_build = None
         self._latest_build = None
         self._remote_session_time = None
         self._env_vars = env_vars
+        self._password = self._env_vars["DEVICE_PASSWORD"]
+        self._public_key = env_vars["PUBLIC_KEY"]
 
         self.uuid = uuid
         self.network_info = self._get_network_info()
@@ -43,8 +42,7 @@ class Device:
         else:
             self.setup_usual_ssh_session()
 
-        password = self._env_vars["DEVICE_PASSWORD"]
-        self._config = Config(overrides={"sudo": {"password": password}})
+        self._config = Config(overrides={"sudo": {"password": self._password}})
         self.connection = Connection(
             host=self.remote_session_ip,
             user="torizon",
@@ -52,7 +50,7 @@ class Device:
             config=self._config,
             connect_timeout=15,
             connect_kwargs={
-                "password": password,
+                "password": self._password,
                 "banner_timeout": 60,
                 "allow_agent": True,
                 "look_for_keys": True,
@@ -232,9 +230,14 @@ class Device:
             return True
         return False
 
-    def update_to_latest(self, target_build_type):
-        logging.info(f"Refreshing {target_build_type} delegation")
-        logging.info(f"Launching update to {self._latest_build}")
+    def update_to_latest(
+        self,
+        target_build_type,
+        ignore_different_secondaries_between_updates=False,
+    ):
+        logging.info(
+            f"Launching update to {self._latest_build} with {target_build_type}"
+        )
         self.launch_update(self._latest_build)
         logging.info("Waiting until update is complete...")
 
@@ -251,6 +254,20 @@ class Device:
         logging.info(
             "The device has seen the update request and will download and install it now"
         )
+
+        if ignore_different_secondaries_between_updates:
+            # 3mins is generally enough for the device to update on a good connection.
+            # FIXME: As this change is being introduced as a quick workaround to a more intricate issue, might be a good idea
+            # to better understand if making these random sleeps configurable is a good idea.
+            time.sleep(180)
+
+            # The following update path: (image that has secondary) -> (image that does not have that secondary) -> (image that again has secondary)
+            # breaks due to an artificial limitation imposed by the platform to prevent security issues. Thus we must always make sure to remove
+            # secondaries that are not in the intersection between the images. In the current case, this is only the `fuses` secondary.
+            self.connection.run(
+                f"echo {self._password} | sudo -S rm -rf /var/sota/storage/fuse || true && echo {self._password} | sudo -S systemctl restart aktualizr-torizon"
+            )
+
         while self._cloud_api.get_assigment_status_for_device(self.uuid) != []:
             logging.info("Still updating...")
             time.sleep(60)

@@ -32,13 +32,16 @@ def process_devices(devices, cloud, env_vars, args):
         if database.try_until_locked(uuid, fail_fast=not is_last_device):
             logger.info(f"Lock acquired for device {uuid}")
             try:
-                dut = Device(cloud, uuid, hardware_id, env_vars["PUBLIC_KEY"])
+                dut = Device(cloud, uuid, hardware_id, env_vars)
                 dut.create_ssh_connnection()
 
                 if not dut.is_os_updated_to_latest(
                     env_vars["TARGET_BUILD_TYPE"]
                 ):
-                    dut.update_to_latest(env_vars["TARGET_BUILD_TYPE"])
+                    dut.update_to_latest(
+                        env_vars["TARGET_BUILD_TYPE"],
+                        args.ignore_different_secondaries_between_updates,
+                    )
                     if not dut.is_os_updated_to_latest(
                         env_vars["TARGET_BUILD_TYPE"]
                     ):
