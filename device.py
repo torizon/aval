@@ -58,11 +58,9 @@ class Device:
         )
 
         if self.test_connection():
-            self._logger.debug(
-                f"Connection test succeeded for device {self.uuid}"
-            )
+            self._log.debug(f"Connection test succeeded for device {self.uuid}")
         else:
-            self._logger.error(f"Connection test failed for device {self.uuid}")
+            self._log.error(f"Connection test failed for device {self.uuid}")
             raise ConnectionError(
                 f"Failed to establish connection with device {self.uuid}"
             )
@@ -294,18 +292,18 @@ class Device:
             try:
                 res = self.connection.run("true", warn=True, hide=True)
                 if res.exited == 0:
-                    self._logger.info("Remote connection test OK")
+                    self._log.info("Remote connection test OK")
                     return True
                 else:
-                    self._logger.error(
+                    self._log.error(
                         f"Testing remote connection failed on try {tries}. Retrying"
                     )
             except Exception as e:
-                self._logger.error(
+                self._log.error(
                     f"Exception occurred while testing remote connection on try {tries}: {str(e)}"
                 )
 
             time.sleep(sleep_time * (tries + 1))
 
-        self._logger.error("Remote connection test failed")
+        self._log.error("Remote connection test failed")
         return False
