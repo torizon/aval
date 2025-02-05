@@ -33,11 +33,14 @@ class TestDeviceInitialization(unittest.TestCase):
             ),
         )
 
+        env_vars = {""}
+
         device = Device(
             cloud_api=mock_cloud_api,
             uuid="test-uuid",
             hardware_id="test-hardware-id",
             public_key="test-public-key",
+            env_vars=env_vars,
         )
 
         mock_refresh_remote_session.assert_not_called()
@@ -76,11 +79,13 @@ class TestDeviceInitialization(unittest.TestCase):
             ),
         )
 
+        env_vars = {""}
         device = Device(
             cloud_api=mock_cloud_api,
             uuid="test-uuid",
             hardware_id="test-hardware-id",
             public_key="test-public-key",
+            env_vars=env_vars,
         )
 
         mock_refresh_remote_session.assert_not_called()

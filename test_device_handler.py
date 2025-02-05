@@ -36,15 +36,9 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
-    @patch("subprocess.check_call")  # Mock subprocess.check_call
+    @patch("subprocess.check_call")
     def test_process_device_with_command(
-        self,
-        mock_check_call,
-        mock_Remote,
-        mock_Device,
-        mock_common,
-        mock_database,
+        self, mock_check_call, mock_Device, mock_common, mock_database
     ):
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
@@ -54,14 +48,13 @@ class TestDeviceHandler(unittest.TestCase):
         mock_database.try_until_locked.return_value = True
 
         dut_instance = MagicMock()
-        mock_Device.return_value = dut_instance
         dut_instance.remote_session_ip = "192.168.1.100"
         dut_instance.remote_session_port = 22
         dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+        dut_instance.connection = MagicMock()
 
-        remote_instance = MagicMock()
-        mock_Remote.return_value = remote_instance
-        remote_instance.test_connection.return_value = True
+        mock_Device.return_value = dut_instance
 
         args = MagicMock()
         args.command = 'echo "Hello World"'
@@ -72,22 +65,19 @@ class TestDeviceHandler(unittest.TestCase):
         result = process_devices(self.devices, self.cloud, self.env_vars, args)
 
         self.assertTrue(result)
-
         mock_check_call.assert_called_once_with(
             args.run_before_on_host,
             shell=True,
             stdout=sys.stdout,
             stderr=subprocess.STDOUT,
         )
-
-        remote_instance.connection.run.assert_called_once_with(args.command)
+        dut_instance.connection.run.assert_called_once_with(args.command)
 
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
     def test_process_device_successful(
-        self, mock_Remote, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_common, mock_database
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
@@ -97,13 +87,10 @@ class TestDeviceHandler(unittest.TestCase):
         mock_database.try_until_locked.return_value = True
 
         dut_instance = MagicMock()
-        mock_Device.return_value = dut_instance
         dut_instance.remote_session_ip = "192.168.1.100"
         dut_instance.remote_session_port = 22
-
-        remote_instance = MagicMock()
-        mock_Remote.return_value = remote_instance
-        remote_instance.test_connection.return_value = True
+        dut_instance.test_connection.return_value = True
+        mock_Device.return_value = dut_instance
 
         result = process_devices(
             self.devices, self.cloud, self.env_vars, self.args
@@ -117,27 +104,31 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
     def test_process_device_failed_connection(
-        self, mock_Remote, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_common, mock_database
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
-        mock_database.device_exists.return_value = True
+        mock_database.device_exists.return_value = False
         mock_database.try_until_locked.return_value = True
 
         dut_instance = MagicMock()
-        mock_Device.return_value = dut_instance
         dut_instance.remote_session_ip = "192.168.1.100"
         dut_instance.remote_session_port = 22
-        dut_instance.is_os_updated_to_latest.return_value = True
-        dut_instance.network_info = None  # Prevent JSON serialization issue
+        dut_instance.create_ssh_connnection.side_effect = ConnectionError(
+            "Connection test failed"
+        )
+        mock_Device.return_value = dut_instance
 
-        mock_Remote.side_effect = ConnectionError("Connection test failed")
+        args = MagicMock()
+        args.run_before_on_host = None  # Critical fix
+        args.before = None
+        args.command = None
+        args.copy_artifact = None
 
-        process_devices(self.devices, self.cloud, self.env_vars, self.args)
+        _ = process_devices(self.devices, self.cloud, self.env_vars, args)
 
         self.mock_sys_exit.assert_called_once_with(1)
         self.logger.error.assert_called_with(
@@ -148,9 +139,8 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
     def test_process_device_exception_handling(
-        self, mock_Remote, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_common, mock_database
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
@@ -189,60 +179,44 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
     @patch("subprocess.check_call")
     def test_process_device_with_copy_artifact(
-        self,
-        mock_check_call,
-        mock_Remote,
-        mock_Device,
-        mock_common,
-        mock_database,
+        self, mock_check_call, mock_Device, mock_common, mock_database
     ):
-        _ = self.device["deviceUuid"]
-        hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+        dut_instance.connection.get = MagicMock()
+
+        mock_Device.return_value = dut_instance
+        mock_common.parse_hardware_id.return_value = "verdin-imx8mm"
 
         args = MagicMock()
-        args.command = None
-        args.before = None
         args.copy_artifact = [
             "/remote/path1",
             "/local/output1",
             "/remote/path2",
             "/local/output2",
         ]
-        args.run_before_on_host = 'echo "Running pre-command on host"'
-
-        mock_database.device_exists.return_value = True
-        mock_database.try_until_locked.return_value = True
-
-        dut_instance = MagicMock()
-        mock_Device.return_value = dut_instance
-        dut_instance.remote_session_ip = "192.168.1.100"
-        dut_instance.remote_session_port = 22
-        dut_instance.network_info = {"ip": "192.168.1.100"}
-
-        remote_instance = mock_Remote.return_value
-        remote_instance.test_connection.return_value = True
-        remote_instance.connection.get = MagicMock()
 
         result = process_devices(self.devices, self.cloud, self.env_vars, args)
 
+        dut_instance.connection.get.assert_has_calls(
+            [
+                call("/remote/path1", "/local/output1"),
+                call("/remote/path2", "/local/output2"),
+            ],
+            any_order=True,
+        )
         self.assertTrue(result)
-
-        calls = [
-            call("/remote/path1", "/local/output1"),
-            call("/remote/path2", "/local/output2"),
-        ]
-        remote_instance.connection.get.assert_has_calls(calls, any_order=True)
 
     @patch("device_handler.database")
     @patch("device_handler.common")
     @patch("device_handler.Device")
-    @patch("device_handler.Remote")
     def test_process_device_use_rac(
-        self, mock_Remote, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_common, mock_database
     ):
         self.env_vars["USE_RAC"] = True
 
@@ -259,7 +233,7 @@ class TestDeviceHandler(unittest.TestCase):
         dut_instance.remote_session_port = 22
 
         remote_instance = MagicMock()
-        mock_Remote.return_value = remote_instance
+        mock_Device.return_value = remote_instance
         remote_instance.test_connection.return_value = True
 
         result = process_devices(

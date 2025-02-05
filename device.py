@@ -4,15 +4,19 @@ import json
 import requests
 import logging
 import time
+from fabric import Connection, Config
 
 from cloud import CloudAPI
 from http_wrapper import endpoint_call
 
 API_BASE_URL = "https://app.torizon.io/api/v2beta"
+RAC_IP = "ras.torizon.io"
 
 
 class Device:
-    def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, public_key):
+    def __init__(
+        self, cloud_api: CloudAPI, uuid, hardware_id, public_key, env_vars
+    ):
         self._log = logging.getLogger(__name__)
 
         logging.debug(f"Initializing Device object {hardware_id} for {uuid}")
@@ -23,12 +27,47 @@ class Device:
         self._current_build = None
         self._latest_build = None
         self._remote_session_time = None
+        self._env_vars = env_vars
 
         self.uuid = uuid
         self.network_info = self._get_network_info()
         self.architecture = None
         self.remote_session_ip = None
         self.remote_session_port = None
+        self.remote_connection = None
+        self.connection = None
+
+    def create_ssh_connnection(self):
+        if self._env_vars["USE_RAC"]:
+            self.setup_rac_session(RAC_IP)
+        else:
+            self.setup_usual_ssh_session()
+
+        password = self._env_vars["DEVICE_PASSWORD"]
+        self._config = Config(overrides={"sudo": {"password": password}})
+        self.connection = Connection(
+            host=self.remote_session_ip,
+            user="torizon",
+            port=self.remote_session_port,
+            config=self._config,
+            connect_timeout=15,
+            connect_kwargs={
+                "password": password,
+                "banner_timeout": 60,
+                "allow_agent": True,
+                "look_for_keys": True,
+            },
+        )
+
+        if self.test_connection():
+            self._logger.debug(
+                f"Connection test succeeded for device {self.uuid}"
+            )
+        else:
+            self._logger.error(f"Connection test failed for device {self.uuid}")
+            raise ConnectionError(
+                f"Failed to establish connection with device {self.uuid}"
+            )
 
     def setup_usual_ssh_session(self):
         self.remote_session_ip = self.network_info["localIpV4"]
@@ -232,3 +271,24 @@ class Device:
 
         self._log.info(f"Obtained network info for {self.uuid}")
         return res.json()
+
+    def test_connection(self, sleep_time=3):
+        for tries in range(5):
+            try:
+                res = self.connection.run("true", warn=True, hide=True)
+                if res.exited == 0:
+                    self._logger.info("Remote connection test OK")
+                    return True
+                else:
+                    self._logger.error(
+                        f"Testing remote connection failed on try {tries}. Retrying"
+                    )
+            except Exception as e:
+                self._logger.error(
+                    f"Exception occurred while testing remote connection on try {tries}: {str(e)}"
+                )
+
+            time.sleep(sleep_time * (tries + 1))
+
+        self._logger.error("Remote connection test failed")
+        return False

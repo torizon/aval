@@ -7,7 +7,6 @@ import time
 import database
 import common
 from device import Device
-from remote import Remote
 
 RAC_IP = "ras.torizon.io"
 
@@ -34,6 +33,7 @@ def process_devices(devices, cloud, env_vars, args):
             logger.info(f"Lock acquired for device {uuid}")
             try:
                 dut = Device(cloud, uuid, hardware_id, env_vars["PUBLIC_KEY"])
+                dut.create_ssh_connnection()
 
                 if not dut.is_os_updated_to_latest(
                     env_vars["TARGET_BUILD_TYPE"]
@@ -53,8 +53,7 @@ def process_devices(devices, cloud, env_vars, args):
                         time.sleep(300)
 
                         try:
-                            remote = Remote(dut, env_vars)
-                            remote.connection.run(
+                            dut.connection.run(
                                 "journalctl -u aktualizr-torizon --no-pager"
                             )
                         except ConnectionError as e:
@@ -64,7 +63,6 @@ def process_devices(devices, cloud, env_vars, args):
 
                         raise Exception(f"Update unsuccessful for {uuid}.")
 
-                remote = Remote(dut, env_vars)
                 logger.debug(dut.network_info)
 
                 if dut.network_info:
@@ -81,10 +79,10 @@ def process_devices(devices, cloud, env_vars, args):
                     )
 
                 if args.before:
-                    remote.connection.run(args.before)
+                    dut.connection.run(args.before)
 
                 if args.command:
-                    remote.connection.run(args.command)
+                    dut.connection.run(args.command)
                     logger.info(
                         f"Command '{args.command}' executed for device {uuid}"
                     )
@@ -96,7 +94,7 @@ def process_devices(devices, cloud, env_vars, args):
                         logger.info(
                             f"Copying artifact from {remote_path} to {local_output}"
                         )
-                        remote.connection.get(remote_path, local_output)
+                        dut.connection.get(remote_path, local_output)
                         logger.info(f"Artifact retrieved for device {uuid}")
 
             except Exception as e:
