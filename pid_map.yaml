@@ -247,3 +247,13 @@ evk-imx95:
   pid4:
     - id: "0524"
       <<: *common_props_architecture_arm64
+
+# Non-Toradex hardware. We simply re-use a reserved subset of PID4s (7XXX).
+# Note that this PID4 list is purely fabricated for the purposes of having
+# an unique identifier.
+
+# https://www.ti.com/tool/SK-AM62
+sk-am62:
+  pid4:
+    - id: "7000"
+      <<: *common_props_architecture_arm64
