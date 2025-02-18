@@ -64,6 +64,13 @@ def parse_arguments():
             "Enable workaround for update paths with conflicting secondaries"
         ),
     )
+    parser.add_argument(
+        "--do-not-update",
+        action="store_true",
+        help=(
+            "Instructs Aval to not update the board to the latest specified release. Uses whatever is installed in the device."
+        ),
+    )
 
     args = parser.parse_args()
     return args

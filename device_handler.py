@@ -35,36 +35,37 @@ def process_devices(devices, cloud, env_vars, args):
                 dut = Device(cloud, uuid, hardware_id, env_vars)
                 dut.create_ssh_connnection()
 
-                if not dut.is_os_updated_to_latest(
-                    env_vars["TARGET_BUILD_TYPE"]
-                ):
-                    dut.update_to_latest(
-                        env_vars["TARGET_BUILD_TYPE"],
-                        args.ignore_different_secondaries_between_updates,
-                    )
+                if not args.do_not_update:
                     if not dut.is_os_updated_to_latest(
                         env_vars["TARGET_BUILD_TYPE"]
                     ):
-                        logger.error(
-                            f"Update unsuccessful for {uuid}: trying to get Aktualizr logs and raising an exception. This might take some time."
+                        dut.update_to_latest(
+                            env_vars["TARGET_BUILD_TYPE"],
+                            args.ignore_different_secondaries_between_updates,
                         )
-                        logger.info(
-                            f"Trying an early SSH connection to {dut.remote_session_ip}:{dut.remote_session_port}. If the device didn't roll back successfully this might not work."
-                        )
-
-                        # Wait for the device to come back up
-                        time.sleep(300)
-
-                        try:
-                            dut.connection.run(
-                                "journalctl -u aktualizr-torizon --no-pager"
-                            )
-                        except ConnectionError as e:
+                        if not dut.is_os_updated_to_latest(
+                            env_vars["TARGET_BUILD_TYPE"]
+                        ):
                             logger.error(
-                                f"Failed to connect to device {uuid} for log retrieval: {str(e)}"
+                                f"Update unsuccessful for {uuid}: trying to get Aktualizr logs and raising an exception. This might take some time."
+                            )
+                            logger.info(
+                                f"Trying an early SSH connection to {dut.remote_session_ip}:{dut.remote_session_port}. If the device didn't roll back successfully this might not work."
                             )
 
-                        raise Exception(f"Update unsuccessful for {uuid}.")
+                            # Wait for the device to come back up
+                            time.sleep(300)
+
+                            try:
+                                dut.connection.run(
+                                    "journalctl -u aktualizr-torizon --no-pager"
+                                )
+                            except ConnectionError as e:
+                                logger.error(
+                                    f"Failed to connect to device {uuid} for log retrieval: {str(e)}"
+                                )
+
+                            raise Exception(f"Update unsuccessful for {uuid}.")
 
                 logger.debug(dut.network_info)
 
