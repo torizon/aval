@@ -254,17 +254,35 @@ class Device:
         )
 
         if ignore_different_secondaries_between_updates:
-            # 3mins is generally enough for the device to update on a good connection.
-            # FIXME: As this change is being introduced as a quick workaround to a more intricate issue, might be a good idea
-            # to better understand if making these random sleeps configurable is a good idea.
-            time.sleep(180)
+            max_attempts = 80
+            attempts = 0
 
-            # The following update path: (image that has secondary) -> (image that does not have that secondary) -> (image that again has secondary)
-            # breaks due to an artificial limitation imposed by the platform to prevent security issues. Thus we must always make sure to remove
-            # secondaries that are not in the intersection between the images. In the current case, this is only the `fuses` secondary.
-            self.connection.run(
-                f"echo {self._password} | sudo -S rm -rf /var/sota/storage/fuse || true && echo {self._password} | sudo -S systemctl restart aktualizr-torizon"
-            )
+            while attempts < max_attempts:
+                logging.info("Waiting for the update to finish to remove fuse")
+
+                if self.is_os_updated_to_latest(
+                    self._env_vars["TARGET_BUILD_TYPE"]
+                ):
+                    try:
+                        # The following update path: (image that has secondary) -> (image that does not have that secondary) -> (image that again has secondary)
+                        # breaks due to an artificial limitation imposed by the platform to prevent security issues. Thus we must always make sure to remove
+                        # secondaries that are not in the intersection between the images. In the current case, this is only the `fuses` secondary.
+                        self.connection.run(
+                            f"echo {self._password} | sudo -S sh -c 'systemctl stop aktualizr-torizon && rm -rf /var/sota/storage/fuse || true && systemctl start aktualizr-torizon'"
+                        )
+                        logging.info("Fuse secondary was removed.")
+                        break
+                    except Exception as e:
+                        logging.info(
+                            f"Failed to remove fuse at {attempts} attempt: {e}. Probably the module is rebooting"
+                        )
+                time.sleep(30)
+                attempts += 1
+
+            if attempts >= max_attempts:
+                raise Exception(
+                    f"Failed to remove fuse after {max_attempts} attempts."
+                )
 
         while self._cloud_api.get_assigment_status_for_device(self.uuid) != []:
             logging.info("Still updating...")
