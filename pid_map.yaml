@@ -257,3 +257,9 @@ sk-am62:
   pid4:
     - id: "7000"
       <<: *common_props_architecture_arm64
+
+# https://www.ti.com/tool/SK-AM62P-LP
+sk-am62p:
+  pid4:
+    - id: "7001"
+      <<: *common_props_architecture_arm64
