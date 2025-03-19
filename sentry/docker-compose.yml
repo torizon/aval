@@ -1,6 +1,6 @@
 services:
   sentry:
-    image: gitlab.int.toradex.com:4567/rd/torizon-core-containers/aval/sentry
+    image: registry.gitlab.com/toradex/rd/torizon-core/aval/sentry:main
     container_name: aval_sentry
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
