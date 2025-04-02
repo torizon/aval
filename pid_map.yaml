@@ -243,6 +243,12 @@ verdin-imx8mpql:
       <<: *common_props_vpu_false
       <<: *common_props_architecture_arm64
 
+aquila-am69octa:
+  pid4:
+    - id: "0088"
+      <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
+
 evk-imx95:
   pid4:
     - id: "0524"
