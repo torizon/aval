@@ -274,3 +274,8 @@ beagley-ai:
   pid4:
     - id: "7100"
       <<: *common_props_architecture_arm64
+
+sk-rzv2l:
+  pid4:
+    - id: "7200"
+      <<: *common_props_architecture_arm64
