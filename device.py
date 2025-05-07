@@ -170,19 +170,38 @@ class Device:
             )
 
     def get_current_build(self):
-        metadata = self._cloud_api.get_package_metadata_for_device(self.uuid)
-        for device in metadata:
-            for pkg in device["installedPackages"]:
-                logging.debug(pkg)
-                logging.debug(self._hardware_id)
-                if pkg["component"] == self._hardware_id:
-                    current_build = pkg["installed"]["packageName"]
-                    logging.info(
-                        f"Current build for {self._hardware_id} is: {current_build}"
-                    )
-                    return current_build
+        max_attempts = 10
+        delay_seconds = 30
 
-        raise Exception(f"Couldn't parse the current build for {self.uuid}")
+        # FIXME: It was noticed that API-V2 sometimes return empty installedPackges for device packages.
+        # So this retry was introduced as a workaround (OTA-2980).
+        for attempt in range(1, max_attempts + 1):
+            try:
+                metadata = self._cloud_api.get_package_metadata_for_device(
+                    self.uuid
+                )
+                for device in metadata:
+                    for pkg in device["installedPackages"]:
+                        logging.debug(pkg)
+                        logging.debug(self._hardware_id)
+                        if pkg["component"] == self._hardware_id:
+                            current_build = pkg["installed"]["packageName"]
+                            logging.info(
+                                f"Current build for {self._hardware_id} is: {current_build}"
+                            )
+                            return current_build
+            except Exception as e:
+                logging.info(
+                    f"Couldn't parse the current build for {self.uuid} at {attempt} attempt, failed with error: {e}"
+                )
+
+            if attempt < max_attempts:
+                logging.info(f"Retrying in {delay_seconds} seconds...")
+                time.sleep(delay_seconds)
+
+        raise Exception(
+            f"Couldn't parse the current build for {self.uuid} after {max_attempts} attempts"
+        )
 
     def launch_update(self, build):
         headers = {
