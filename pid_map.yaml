@@ -36,6 +36,9 @@ common_props_architecture_arm: &common_props_architecture_arm
 common_props_architecture_arm64: &common_props_architecture_arm64
   architecture: "arm64"
 
+common_props_architecture_x86: &common_props_architecture_x86
+  architecture: "x86"
+
 apalis-imx6d:
   pid4:
     - id: "0029"
@@ -279,3 +282,8 @@ sk-rzv2l:
   pid4:
     - id: "7200"
       <<: *common_props_architecture_arm64
+
+x86:
+  pid4:
+    - id: "7300"
+      <<: *common_props_architecture_x86
