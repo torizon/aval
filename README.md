@@ -82,6 +82,26 @@ $ make test
 $ make format
 ```
 
+If you want to run natively in shell:
+
+```
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ make install
+$ eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"
+```
+
+If you want to run natively in Windows:
+
+First, fill in the information from the provided `.env_template.ps1` into a new `.env.ps1` file.
+
+```
+$ python -m venv venv
+$ .\venv\Scripts\Activate.ps1
+$ pip install -r requirements.txt
+$ . .\.env.ps1; $env:SOC_UDT = "apalis-imx8qm"; python main.py --delegation-config delegation_config.toml "echo Hello"
+```
+
 ## Aval's Database
 
 Aval uses Postgres as a locking mechanism. In the future we may also opt to use it to gather testing statistics.
