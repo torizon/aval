@@ -85,3 +85,66 @@ e2e-test-any-arm-release:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm"
+
+e2e-test-any-arm64-shell:
+  tags:
+    - shell
+  <<: *skip_on_watch
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_ARCHITECTURE: "arm64"
+    AVAL_VERBOSE: "true"
+  before_script:
+    - sudo apt update && sudo apt upgrade -y
+    - sudo apt install -y python3 python3-venv make
+    - python3 --version
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
+    - make install
+    - ./entrypoint.sh "docker run -e SOC_ARCHITECTURE=$SOC_ARCHITECTURE --privileged --pid host
+      -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
+      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
+      --delegation-config ./delegation_config.toml --before "docker system prune --force --all"
+      ${AVAL_EXTRA_OPTIONS} --run-before-on-host "./host_command.sh device_information.json"
+  artifacts:
+    when: always
+    reports:
+      junit: ./report.xml
+
+e2e-test-any-arm64-powershell:
+  tags:
+    - vstudio
+  <<: *skip_on_watch
+  variables:
+    TARGET_BUILD_TYPE: "nightly"
+    SOC_ARCHITECTURE: "arm64"
+    AVAL_VERBOSE: "true"
+  before_script:
+    # If Python is already installed, winget returns an error, which causes the CI job to fail.
+    # So, check if it's installed and, if it is, force LASTEXITCODE = 0.
+    - |
+      try {
+        winget install --id Python.Python.3.11 --accept-source-agreements --accept-package-agreements
+      } catch {
+        Write-Output "Ignoring error from 'winget install --id Python.Python.3.11': $($_.Exception.Message)"
+      }
+      $global:LASTEXITCODE = 0
+    - python --version
+  script:
+    - Write-Output "Setting up environment for Windows runner..."
+    - python -m venv venv
+    - .\venv\Scripts\activate
+    - pip install -r requirements.txt
+    - python main.py "docker run -e SOC_ARCHITECTURE=$env:SOC_ARCHITECTURE --privileged
+      --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
+      $env:CI_REGISTRY/$env:CI_PROJECT_PATH/aval-e2e-tests:$env:CI_COMMIT_REF_NAME /suites/run-tests.sh"
+      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
+      --delegation-config .\delegation_config.toml --before "docker system prune --force --all"
+      --run-before-on-host ".\host_command.ps1 device_information.json"
+  artifacts:
+    when: always
+    reports:
+      junit: .\report.xml
