@@ -3,6 +3,7 @@ import sys
 import json
 import subprocess
 import time
+import os
 
 import database
 import common
@@ -75,12 +76,27 @@ def process_devices(devices, cloud, env_vars, args):
 
                 if args.run_before_on_host:
                     logger.debug(f"Executing {args.run_before_on_host} on host")
-                    subprocess.check_call(
-                        args.run_before_on_host,
-                        shell=True,
-                        stdout=sys.stdout,
-                        stderr=subprocess.STDOUT,
-                    )
+
+                    if os.name == "nt":
+                        subprocess.check_call(
+                            [
+                                "powershell",
+                                "-Command",
+                                args.run_before_on_host,
+                            ],
+                            stdout=sys.stdout,
+                            stderr=subprocess.STDOUT,
+                        )
+                    elif os.name == "posix":
+                        subprocess.check_call(
+                            args.run_before_on_host,
+                            shell=True,
+                            stdout=sys.stdout,
+                            stderr=subprocess.STDOUT,
+                        )
+                    else:
+                        logger.error(f"Unsupported {os.name} OS")
+                        raise Exception(f"Unsupported {os.name} OS")
 
                 if args.before:
                     dut.connection.run(args.before)

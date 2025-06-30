@@ -37,7 +37,7 @@ class TestDeviceHandler(unittest.TestCase):
     @patch("device_handler.common")
     @patch("device_handler.Device")
     @patch("subprocess.check_call")
-    def test_process_device_with_command(
+    def test_process_device_with_command_posix(
         self, mock_check_call, mock_Device, mock_common, mock_database
     ):
         _ = self.device["deviceUuid"]
@@ -62,7 +62,10 @@ class TestDeviceHandler(unittest.TestCase):
         args.copy_artifact = None
         args.run_before_on_host = 'echo "Running pre-command on host"'
 
-        result = process_devices(self.devices, self.cloud, self.env_vars, args)
+        with patch("os.name", "posix"):
+            result = process_devices(
+                self.devices, self.cloud, self.env_vars, args
+            )
 
         self.assertTrue(result)
         mock_check_call.assert_called_once_with(
@@ -72,6 +75,83 @@ class TestDeviceHandler(unittest.TestCase):
             stderr=subprocess.STDOUT,
         )
         dut_instance.connection.run.assert_called_once_with(args.command)
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    @patch("subprocess.check_call")
+    def test_process_device_with_command_windows(
+        self, mock_check_call, mock_Device, mock_common, mock_database
+    ):
+        _ = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+        dut_instance.connection = MagicMock()
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = 'Write-Output "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.run_before_on_host = 'Write-Output "Running pre-command on host"'
+
+        with patch("os.name", "nt"):
+            result = process_devices(
+                self.devices, self.cloud, self.env_vars, args
+            )
+
+        self.assertTrue(result)
+        mock_check_call.assert_called_once_with(
+            ["powershell", "-Command", args.run_before_on_host],
+            stdout=sys.stdout,
+            stderr=subprocess.STDOUT,
+        )
+        dut_instance.connection.run.assert_called_once_with(args.command)
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    def test_process_device_with_command_unknown_os(
+        self, mock_Device, mock_common, mock_database
+    ):
+        _ = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+        dut_instance.connection = MagicMock()
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = "unknown_command"
+        args.before = None
+        args.copy_artifact = None
+        args.run_before_on_host = "unknown_command"
+
+        with patch("os.name", "unknown_os"):
+            process_devices(self.devices, self.cloud, self.env_vars, args)
+
+        self.logger.error.assert_called_with(
+            f"An error occurred while processing device {_}: Unsupported unknown_os OS"
+        )
 
     @patch("device_handler.database")
     @patch("device_handler.common")
