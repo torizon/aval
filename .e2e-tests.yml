@@ -5,6 +5,8 @@
     - when: on_success
 
 .e2e-test-template:
+  tags:
+    - docker
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
   <<: *skip_on_watch
   variables:
@@ -48,6 +50,8 @@ e2e-test-apalis-imx8qm-release-again:
     - e2e-test-apalis-imx8qm-nightly
 
 e2e-test-verdin-imx8mpq-npu-release:
+  tags:
+    - docker
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
   <<: *skip_on_watch
   variables:
