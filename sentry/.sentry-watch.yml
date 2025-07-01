@@ -32,6 +32,8 @@ sentry-container-build:
     - when: never
   
 sentry-watch:
+  tags:
+    - docker
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
   <<: *run_on_watch
   script: cd /sentry && uv run main.py
