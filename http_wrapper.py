@@ -21,6 +21,7 @@ def endpoint_call(url, request_type, headers=None, body=None, json_data=None):
         res.raise_for_status()
     except requests.exceptions.HTTPError as errh:
         error_message = f"Http Error: {errh}"
+        raise errh
     except requests.exceptions.ConnectionError as errc:
         error_message = f"Error Connecting: {errc}"
     except requests.exceptions.Timeout as errt:

@@ -1,4 +1,3 @@
-import datetime
 import dateutil
 import json
 import requests
@@ -43,6 +42,11 @@ class Device:
             self.setup_usual_ssh_session()
 
         self._config = Config(overrides={"sudo": {"password": self._password}})
+
+        self._log.info(
+            f"Attempting to establish a connection over {self.remote_session_ip}:{self.remote_session_port}"
+        )
+
         self.connection = Connection(
             host=self.remote_session_ip,
             user="torizon",
@@ -71,16 +75,29 @@ class Device:
 
     def setup_rac_session(self, RAC_IP):
         try:
+            self._log.info("Attempting to setup a ssh session over RAS...")
             self.remote_session_ip = RAC_IP
-            if not self.is_enough_time_in_session():
-                self.refresh_remote_session()
+            # there's a bug in RAS where trying to DELETE a remote session
+            # causes a 500 error. This is a regression, but either way the logic
+            # here should be kept at minimum (always kill and spawn a new session)
+            # new ones. From the perspective of the API rate, it's the same thing
+            # as refreshing an existing session and we don't need a long-living
+            # session for this particular use-case.
+            if self._get_remote_session():
+                self._delete_remote_session()
+            self._create_remote_session()
             self.remote_session_port, self._remote_session_time = (
-                self._create_remote_session()
+                self._get_remote_session()
+            )
+            self._log.info(
+                f"Using ssh over RAS session on port {self.remote_session_port}"
             )
         except Exception as e:
             self._log.error(f"{e}")
 
     def _create_remote_session(self):
+        self._log.info(f"Creating a new remote session for device {self.uuid}")
+        res = None
         try:
             res = endpoint_call(
                 url=API_BASE_URL
@@ -93,60 +110,68 @@ class Device:
                     "Content-Type": "application/json",
                 },
                 json_data={
-                    "public_keys": [
+                    "publicKeys": [
                         f"{self._public_key}\n",
                     ],
-                    "session_duration": "43200s",
+                    "sessionDuration": "43200s",
                 },
             )
 
         except Exception as e:
             if res and res.status_code == 409:
                 self._log.info(
-                    "409 Conflict: Session already exists, attempting to retrieve existing session."
+                    "409 Conflict: Session already exists. Will not re-use the same session."
                 )
-                return self._get_remote_session()
             logging.error(e)
-        return self._get_remote_session()
 
     def _get_remote_session(self):
-        res = endpoint_call(
-            url=API_BASE_URL + f"/remote-access/device/{self.uuid}/sessions",
-            request_type="get",
-            body=None,
-            headers={
-                "Authorization": f"Bearer {self._cloud_api.token}",
-                "accept": "application/json",
-            },
-            json_data=None,
-        )
-        if res is None:
-            raise Exception("Failed to get remote session")
-
         self._log.info(
-            f'Remote session created for {self.uuid} on port {res.json()["ssh"]["reverse_port"]} expiring at {res.json()["ssh"]["expires_at"]}'
-        )
-        return res.json()["ssh"]["reverse_port"], dateutil.parser.parse(
-            res.json()["ssh"]["expires_at"]
+            f"Attempting to get the information of a remote session for device {self.uuid}"
         )
 
-    def is_enough_time_in_session(self, time=60 * 30):
-        if not self._remote_session_time:
-            self._log.debug("Session expired or not enough time remaining")
-            return False
-        remaining_time = (
-            self._remote_session_time
-            - datetime.datetime.now().astimezone(datetime.timezone.utc)
+        try:
+            res = endpoint_call(
+                url=API_BASE_URL
+                + f"/remote-access/device/{self.uuid}/sessions",
+                request_type="get",
+                headers={
+                    "Authorization": f"Bearer {self._cloud_api.token}",
+                    "accept": "application/json",
+                },
+            )
+
+            response_data = res.json()
+            reverse_port = response_data.get("ssh", {}).get("reversePort")
+
+            if not reverse_port:
+                self._log.info(
+                    f"No active remote session found for device {self.uuid}"
+                )
+                return False
+
+            expires_at = response_data["ssh"]["expiresAt"]
+            self._log.info(
+                f"Remote session exists for {self.uuid} on port {reverse_port} expiring at {expires_at}"
+            )
+            return reverse_port, dateutil.parser.parse(expires_at)
+
+        except requests.exceptions.HTTPError as http_err:
+            if http_err.response.status_code == 404:
+                self._log.info(
+                    f"404: There is no remote session for device {self.uuid}"
+                )
+                return False
+            else:
+                self._log.error(f"HTTP error occurred: {http_err}")
+                raise
+        except Exception as e:
+            self._log.error(f"Unexpected error: {e}")
+            raise
+
+    def _delete_remote_session(self):
+        self._log.info(
+            f"Attempting to delete a remote sessions for {self.uuid}"
         )
-        if remaining_time.days == 0 and remaining_time.seconds > time:
-            self._log.debug("Theres enough time is session")
-            return True
-
-        # if not enough time left (expired or <30m left), we need to delete existing connection and create a new one
-        self._log.debug("Session expired or not enough time remaining")
-        return False
-
-    def refresh_remote_session(self):
         try:
             _ = endpoint_call(
                 url=API_BASE_URL
@@ -159,15 +184,12 @@ class Device:
                 },
             )
 
-            self._log.info("Remote session deleted")
-            self.remote_session_port, self._remote_session_time = (
-                self._create_remote_session()
-            )
-
         except requests.RequestException as e:
             self._log.error(
                 f"Request exception occurred during remote session deletion for {self.uuid}: {str(e)}"
             )
+
+        self._log.info(f"Deleted remote sessions for {self.uuid}")
 
     def get_current_build(self):
         max_attempts = 10
@@ -324,7 +346,7 @@ class Device:
         self._log.info(f"Obtained network info for {self.uuid}")
         return res.json()
 
-    def test_connection(self, sleep_time=3):
+    def test_connection(self, sleep_time=10):
         for tries in range(5):
             try:
                 res = self.connection.run("true", warn=True, hide=True)

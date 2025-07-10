@@ -30,10 +30,11 @@
     - e2e-tests-container-build
     - unit-test
 
-e2e-test-apalis-imx8qm-release:
+e2e-test-apalis-imx8qm-release-with-rac:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "apalis-imx8qm"
+    USE_RAC: "true"
 
 e2e-test-apalis-imx8qm-nightly:
   extends: .e2e-test-template
@@ -41,7 +42,7 @@ e2e-test-apalis-imx8qm-nightly:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
   needs:
-    - e2e-test-apalis-imx8qm-release
+    - e2e-test-apalis-imx8qm-release-with-rac
 
 e2e-test-apalis-imx8qm-release-again:
   extends: .e2e-test-template
@@ -100,6 +101,9 @@ e2e-test-any-arm64-shell:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
+  needs:
+    - e2e-tests-container-build
+    - unit-test
   before_script:
     - sudo apt update && sudo apt upgrade -y
     - sudo apt install -y python3 python3-venv make
@@ -128,6 +132,9 @@ e2e-test-any-arm64-powershell:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
+  needs:
+    - e2e-tests-container-build
+    - unit-test
   before_script:
     # If Python is already installed, winget returns an error, which causes the CI job to fail.
     # So, check if it's installed and, if it is, force LASTEXITCODE = 0.

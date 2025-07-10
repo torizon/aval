@@ -85,7 +85,7 @@ class TestEndpointCall(unittest.TestCase):
 
         self.assertEqual(
             str(context.exception),
-            "Http Error: 405",
+            "405",
         )
         mock_get.assert_called_once_with(url, headers=headers)
 
