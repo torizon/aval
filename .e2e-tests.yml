@@ -16,10 +16,10 @@
     AVAL_VERBOSE: "true"
     GIT_STRATEGY: none
   script:
-    - cd /aval && /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
+    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml $CI_PROJECT_DIR/report.xml
+      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config /aval/delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
   artifacts:
@@ -61,10 +61,10 @@ e2e-test-verdin-imx8mpq-npu-release:
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"
   script:
-    - cd /aval && /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
+    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --copy-artifact /home/torizon/report.xml $CI_PROJECT_DIR/report.xml --delegation-config /aval/delegation_config.toml
+      --copy-artifact /home/torizon/report.xml report.xml --delegation-config /aval/delegation_config.toml
       --device-config /aval/verdin-imx8mpq-npu.toml --before "docker system prune --force --all" --ignore-different-secondaries-between-updates
   artifacts:
     when: always
@@ -113,7 +113,7 @@ e2e-test-any-arm64-shell:
     - source venv/bin/activate
     - pip install --upgrade pip
     - make install
-    - ./entrypoint.sh "docker run -e SOC_ARCHITECTURE=$SOC_ARCHITECTURE --privileged --pid host
+    - python main.py "docker run -e SOC_ARCHITECTURE=$SOC_ARCHITECTURE --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
       --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
