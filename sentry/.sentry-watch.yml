@@ -1,3 +1,11 @@
+.skip_on_watch: &skip_on_watch
+  rules:
+    - if: $WATCH
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: on_success
+
 .run_on_watch: &run_on_watch
   rules:
     - if: $WATCH
@@ -8,7 +16,7 @@ sentry-container-build:
   tags:
     - aws-toradex-large
   image: docker:dind
-  <<: *run_on_watch
+  <<: *skip_on_watch
   services:
     - name: docker:dind
   variables:
@@ -28,10 +36,6 @@ sentry-container-build:
       --platform linux/arm64/v8,linux/amd64
       -f sentry/Dockerfile
       -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME} .
-  rules:
-    - if: $WATCH
-      when: always
-    - when: never
   
 sentry-watch:
   tags:
@@ -39,8 +43,6 @@ sentry-watch:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
   <<: *run_on_watch
   script: cd /sentry && uv run main.py
-  needs:
-    - sentry-container-build
   rules:
     - if: $WATCH
       when: always
