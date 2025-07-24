@@ -8,7 +8,7 @@
 
 .e2e-test-template:
   tags:
-    - docker
+    - all
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
   <<: *skip_on_watch
   variables:
@@ -54,7 +54,7 @@ e2e-test-apalis-imx8qm-release-again:
 
 e2e-test-verdin-imx8mpq-npu-release:
   tags:
-    - docker
+    - all
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
   <<: *skip_on_watch
   variables:
@@ -126,7 +126,7 @@ e2e-test-any-arm64-shell:
 
 e2e-test-any-arm64-powershell:
   tags:
-    - vstudio
+    - pwsh
   <<: *skip_on_watch
   variables:
     TARGET_BUILD_TYPE: "nightly"

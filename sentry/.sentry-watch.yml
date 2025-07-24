@@ -5,6 +5,8 @@
     - when: never
 
 sentry-container-build:
+  tags:
+    - aws-toradex-large
   image: docker:dind
   <<: *run_on_watch
   services:
@@ -33,7 +35,7 @@ sentry-container-build:
   
 sentry-watch:
   tags:
-    - docker
+    - all
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
   <<: *run_on_watch
   script: cd /sentry && uv run main.py

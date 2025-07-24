@@ -1,7 +1,7 @@
 include:
   - ".e2e-tests.yml"
   - "sentry/.sentry-watch.yml"
-  
+
 .skip_on_watch: &skip_on_watch
   rules:
     - if: $WATCH
@@ -9,6 +9,10 @@ include:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - when: on_success
+
+default:
+  tags:
+    - aws-toradex-large
 
 lint:
   <<: *skip_on_watch
