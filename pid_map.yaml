@@ -260,6 +260,12 @@ verdin-imx8mpql:
       <<: *common_props_vpu_false
       <<: *common_props_architecture_arm64
 
+verdin-imx95h:
+  pid4:
+    - id: "0089"
+      <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
+
 # Non-Toradex hardware. We simply re-use a reserved subset of PID4s (7XXX)
 # for SoMs that do not have a reserved PID4.
 # Note that this PID4 list is purely fabricated for the purposes of having
