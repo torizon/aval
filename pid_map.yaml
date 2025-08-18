@@ -167,6 +167,12 @@ colibri-imx8qxp:
       <<: *common_props_default
       <<: *common_props_architecture_arm64
 
+smarc-imx8mpq:
+  pid4:
+    - id: "0097"
+      <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
+
 verdin-am62dual:
   pid4:
     - id: "0073"
