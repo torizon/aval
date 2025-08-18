@@ -197,6 +197,12 @@ verdin-am62s:
       <<: *common_props_gpu_false
       <<: *common_props_architecture_arm64
 
+verdin-am62pq:
+  pid4:
+    - id: "0099"
+      <<: *common_props_default
+      <<: *common_props_architecture_arm64
+
 verdin-imx8mmdl:
   pid4:
     - id: "0057"
