@@ -69,7 +69,9 @@ sentry-container-build-manifest:
 sentry-watch:
   tags:
     - all
-  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
+  image:
+    name: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
+    pull_policy: always
   <<: *run_on_watch
   script: cd /sentry && uv run main.py
   rules:
