@@ -99,7 +99,7 @@ e2e-test-any-arm64-nightly:
 e2e-test-any-arm-release:
   extends: .e2e-test-template
   variables:
-    TARGET_BUILD_TYPE: "nightly"
+    TARGET_BUILD_TYPE: "release"
     SOC_ARCHITECTURE: "arm"
 
 e2e-test-any-arm64-shell:
