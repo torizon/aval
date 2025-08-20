@@ -269,11 +269,55 @@ class Device:
             return True
         return False
 
+    def wait_for_update_check(self, timeout=300) -> bool:
+        started = (
+            self.connection.run(
+                f'echo {self._password} | sudo -S sh -c "systemctl show -p ActiveEnterTimestamp aktualizr-torizon"',
+                hide=True,
+            )
+            .stdout.strip()
+            .split("=", 1)[1]
+        )
+
+        start_time = time.time()
+
+        for _ in range(timeout):
+            logs = self.connection.run(
+                f"echo {self._password} | sudo -S sh -c \"journalctl -u aktualizr-torizon -b --since '{started}'\"",
+                hide=True,
+                warn=True,
+            ).stdout.splitlines()
+
+            for line in logs:
+                if "Event: UpdateCheckComplete" in line:
+                    logging.info("UpdateCheckComplete event detected!")
+                    return
+
+            if time.time() - start_time > timeout:
+                break
+            time.sleep(5)
+
+        raise RuntimeError(
+            "UpdateCheckComplete was not found in journalctl logs within timeout"
+        )
+
+    def remove_databases(self):
+        # This is a temporary workaround for the aktualizr bug
+        logging.info("Attempting to remove local databases")
+        self.connection.run(
+            f"echo {self._password} | sudo -S sh -c 'systemctl stop aktualizr-torizon && (rm -rf /var/sota/sql.db /var/sota/storage/* || true) && systemctl start aktualizr-torizon'"
+        )
+        self.wait_for_update_check()
+
     def update_to_latest(
         self,
         target_build_type,
         ignore_different_secondaries_between_updates=False,
+        remove_databases=False,
     ):
+        if remove_databases:
+            self.remove_databases()
+
         logging.info(
             f"Launching update to {self._latest_build} with {target_build_type}"
         )

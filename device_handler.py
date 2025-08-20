@@ -43,6 +43,7 @@ def process_devices(devices, cloud, env_vars, args):
                         dut.update_to_latest(
                             env_vars["TARGET_BUILD_TYPE"],
                             args.ignore_different_secondaries_between_updates,
+                            args.remove_databases,
                         )
                         if not dut.is_os_updated_to_latest(
                             env_vars["TARGET_BUILD_TYPE"]

@@ -19,6 +19,7 @@
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
+      --remove-databases
       --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config /aval/delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
@@ -64,6 +65,7 @@ e2e-test-verdin-imx8mpq-npu-release:
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
+      --remove-databases
       --copy-artifact /home/torizon/report.xml report.xml --delegation-config /aval/delegation_config.toml
       --device-config /aval/verdin-imx8mpq-npu.toml --before "docker system prune --force --all" --ignore-different-secondaries-between-updates
   artifacts:
@@ -116,6 +118,7 @@ e2e-test-any-arm64-shell:
     - python main.py "docker run -e SOC_ARCHITECTURE=$SOC_ARCHITECTURE --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
+      --remove-databases
       --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config ./delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "./host_command.sh device_information.json"
@@ -154,6 +157,7 @@ e2e-test-any-arm64-powershell:
     - python main.py "docker run -e SOC_ARCHITECTURE=$env:SOC_ARCHITECTURE --privileged
       --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       $env:CI_REGISTRY/$env:CI_PROJECT_PATH/aval-e2e-tests:$env:CI_COMMIT_REF_NAME /suites/run-tests.sh"
+      --remove-databases
       --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config .\delegation_config.toml --before "docker system prune --force --all"
       --run-before-on-host ".\host_command.ps1 device_information.json"

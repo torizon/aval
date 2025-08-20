@@ -71,6 +71,14 @@ def parse_arguments():
             "Instructs Aval to not update the board to the latest specified release. Uses whatever is installed in the device."
         ),
     )
+    # This is a temporary argument, to be removed when Aktualizr fixes TOR-3518
+    parser.add_argument(
+        "--remove-databases",
+        action="store_true",
+        help=(
+            "Deletes databases to work around Aktualizr bug. Use this if your test involves updating the device (e.g. TCB deploy)."
+        ),
+    )
 
     args = parser.parse_args()
     return args
