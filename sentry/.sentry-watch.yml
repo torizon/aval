@@ -14,7 +14,7 @@
 
 sentry-container-build:
   tags:
-    - aws-toradex-large
+    - saas-linux-small-amd64
   image: docker:dind
   <<: *skip_on_watch
   services:

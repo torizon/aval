@@ -12,7 +12,7 @@ include:
 
 default:
   tags:
-    - aws-toradex-large
+    - saas-linux-small-amd64
 
 lint:
   <<: *skip_on_watch
