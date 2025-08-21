@@ -12,9 +12,7 @@
       when: always
     - when: never
 
-sentry-container-build:
-  tags:
-    - saas-linux-small-amd64
+.sentry-container-build:
   image: docker:dind
   <<: *skip_on_watch
   services:
@@ -27,16 +25,43 @@ sentry-container-build:
     - docker info
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
-    - docker buildx create --config ./buildkitd.toml --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
     - docker buildx inspect --bootstrap
-    - docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
     - docker buildx build
       --progress=plain
       --push
-      --platform linux/arm64/v8,linux/amd64
+      --platform linux/$PLATFORM
       -f sentry/Dockerfile
-      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME} .
-  
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
+
+sentry-container-build-amd64:
+  extends: .sentry-container-build
+  tags:
+    - saas-linux-small-amd64
+  variables:
+    PLATFORM: amd64
+    DOCKER_SUFIX: amd64
+
+sentry-container-build-arm64:
+  extends: .sentry-container-build
+  tags:
+    - saas-linux-small-arm64
+  variables:
+    PLATFORM: arm64/v8
+    DOCKER_SUFIX: arm64
+
+sentry-container-build-manifest:
+  tags:
+    - saas-linux-small-amd64
+  image: docker:dind
+  needs:
+    - sentry-container-build-amd64
+    - sentry-container-build-arm64
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx imagetools create -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}-amd64
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}-arm64
+
 sentry-watch:
   tags:
     - all

@@ -28,7 +28,7 @@
     reports:
       junit: report.xml
   needs:
-    - e2e-tests-container-build
+    - e2e-tests-container-build-manifest
     - unit-test
 
 e2e-test-apalis-imx8qm-release-with-rac:
@@ -73,7 +73,7 @@ e2e-test-verdin-imx8mpq-npu-release:
     reports:
       junit: report.xml
   needs:
-    - e2e-tests-container-build
+    - e2e-tests-container-build-manifest
     - unit-test
 
 e2e-test-sk-am62-nightly:
@@ -111,7 +111,7 @@ e2e-test-any-arm64-shell:
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
   needs:
-    - e2e-tests-container-build
+    - e2e-tests-container-build-manifest
     - unit-test
   before_script:
     - sudo apt update && sudo apt upgrade -y
@@ -143,7 +143,7 @@ e2e-test-any-arm64-powershell:
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
   needs:
-    - e2e-tests-container-build
+    - e2e-tests-container-build-manifest
     - unit-test
   before_script:
     # If Python is already installed, winget returns an error, which causes the CI job to fail.

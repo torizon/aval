@@ -20,7 +20,7 @@ lint:
   script:
     - black --check --verbose --line-length 80 -- *.py
 
-aval-container-build:
+.aval-container-build:
   image: docker:dind
   <<: *skip_on_watch
   services:
@@ -33,16 +33,41 @@ aval-container-build:
     - docker info
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
-    - docker buildx create --config ./buildkitd.toml --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
     - docker buildx inspect --bootstrap
-    - docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
     - docker buildx build
       --progress=plain
       --push
-      --platform linux/arm64/v8,linux/amd64
-      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME} .
+      --platform linux/$PLATFORM
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
 
-e2e-tests-container-build:
+aval-container-build-amd64:
+  extends: .aval-container-build
+  variables:
+    PLATFORM: amd64
+    DOCKER_SUFIX: amd64
+
+aval-container-build-arm64:
+  extends: .aval-container-build
+  tags:
+    - saas-linux-small-arm64
+  variables:
+    PLATFORM: arm64/v8
+    DOCKER_SUFIX: arm64
+
+aval-container-build-manifest:
+  tags:
+    - saas-linux-small-amd64
+  image: docker:dind
+  needs:
+    - aval-container-build-amd64
+    - aval-container-build-arm64
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx imagetools create -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}-amd64
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}-arm64
+
+.e2e-tests-container-build:
   image: docker:dind
   <<: *skip_on_watch
   services:
@@ -55,15 +80,50 @@ e2e-tests-container-build:
     - docker info
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
-    - docker buildx create --config ./buildkitd.toml --name multiarch-builder --driver docker-container --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --use
     - docker buildx inspect --bootstrap
-    - docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
     - docker buildx build
       --progress=plain
       --file e2e-tests/Dockerfile
       --push
-      --platform linux/arm/v7,linux/arm64/v8,linux/amd64
-      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} .
+      --platform linux/$PLATFORM
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
+
+e2e-tests-container-build-amd64:
+  extends: .e2e-tests-container-build
+  variables:
+    PLATFORM: amd64
+    DOCKER_SUFIX: amd64
+
+e2e-tests-container-build-arm:
+  extends: .e2e-tests-container-build
+  tags:
+    - saas-linux-small-arm64
+  variables:
+    PLATFORM: arm/v7
+    DOCKER_SUFIX: arm
+
+e2e-tests-container-build-arm64:
+  extends: .e2e-tests-container-build
+  tags:
+    - saas-linux-small-arm64
+  variables:
+    PLATFORM: arm64/v8
+    DOCKER_SUFIX: arm64
+
+e2e-tests-container-build-manifest:
+  tags:
+    - saas-linux-small-amd64
+  image: docker:dind
+  needs:
+    - e2e-tests-container-build-amd64
+    - e2e-tests-container-build-arm
+    - e2e-tests-container-build-arm64
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker buildx imagetools create -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-amd64
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-arm
+      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-arm64
 
 unit-test:
   image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}
@@ -78,7 +138,7 @@ unit-test:
         coverage_format: cobertura
         path: coverage.xml
   needs:
-    - aval-container-build
+    - aval-container-build-manifest
 
 unit-test-windows:
   <<: *skip_on_watch
@@ -103,7 +163,7 @@ unit-test-windows:
         coverage_format: cobertura
         path: coverage.xml
   needs:
-    - aval-container-build
+    - aval-container-build-manifest
 
 flake8-lint:
   image: python:3.12
