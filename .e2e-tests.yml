@@ -144,7 +144,7 @@ e2e-test-any-arm64-powershell:
     AVAL_VERBOSE: "true"
   needs:
     - e2e-tests-container-build-manifest
-    - unit-test
+    - unit-test-windows
   before_script:
     # If Python is already installed, winget returns an error, which causes the CI job to fail.
     # So, check if it's installed and, if it is, force LASTEXITCODE = 0.
