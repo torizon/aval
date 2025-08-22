@@ -32,6 +32,10 @@
       --platform linux/$PLATFORM
       -f sentry/Dockerfile
       -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
+  needs:
+    - lint
+    - flake8-lint
+    - validate-yaml
 
 sentry-container-build-amd64:
   extends: .sentry-container-build

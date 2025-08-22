@@ -39,6 +39,10 @@ lint:
       --push
       --platform linux/$PLATFORM
       -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
+  needs:
+    - lint
+    - flake8-lint
+    - validate-yaml
 
 aval-container-build-amd64:
   extends: .aval-container-build
@@ -87,6 +91,10 @@ aval-container-build-manifest:
       --push
       --platform linux/$PLATFORM
       -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-$DOCKER_SUFIX .
+  needs:
+    - lint
+    - flake8-lint
+    - validate-yaml
 
 e2e-tests-container-build-amd64:
   extends: .e2e-tests-container-build
