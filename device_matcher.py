@@ -13,6 +13,7 @@ def find_possible_devices(cloud, args, env_vars):
     target_build_type = env_vars["TARGET_BUILD_TYPE"]
     soc_udt = env_vars.get("SOC_UDT")
     soc_architecture = env_vars.get("SOC_ARCHITECTURE")
+    use_common_devices = env_vars.get("USE_COMMON_DEVICES")
 
     logger.info("Finding possible devices to send tests to...")
 
@@ -46,7 +47,7 @@ def find_possible_devices(cloud, args, env_vars):
             )
         elif soc_architecture:
             pid4_targets = convolute.get_pid4_list_from_architecture(
-                soc_architecture, pid4_map
+                soc_architecture, pid4_map, use_common_devices
             )
         else:
             pid4_targets = convolute.get_pid4_list(soc_udt, pid4_map)

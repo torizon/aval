@@ -32,12 +32,20 @@ common_props_npu_true: &common_props_npu_true
 
 common_props_architecture_arm: &common_props_architecture_arm
   architecture: "arm"
+  common_device: false
 
 common_props_architecture_arm64: &common_props_architecture_arm64
   architecture: "arm64"
+  common_device: false
 
-common_props_architecture_x86: &common_props_architecture_x86
+common_props_architecture_arm64_ct: &common_props_architecture_arm64_cd
+  architecture: "arm64"
+  common_device: true
+
+common_props_architecture_x86_ct: &common_props_architecture_x86_cd
   architecture: "x86"
+  common_device: true
+
 
 ## Toradex machines
 
@@ -286,37 +294,37 @@ verdin-imx95h:
 beagley-ai:
   pid4:
     - id: "7000"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 evk-imx95:
   pid4:
     - id: "0524"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 # https://www.ti.com/tool/SK-AM62
 sk-am62:
   pid4:
     - id: "7100"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 # https://www.ti.com/tool/SK-AM62-LP
 sk-am62l:
   pid4:
     - id: "7101"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 # https://www.ti.com/tool/SK-AM62P-LP
 sk-am62p:
   pid4:
     - id: "7102"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 sk-rzv2l:
   pid4:
     - id: "7200"
-      <<: *common_props_architecture_arm64
+      <<: *common_props_architecture_arm64_cd
 
 x86:
   pid4:
     - id: "7300"
-      <<: *common_props_architecture_x86
+      <<: *common_props_architecture_x86_cd

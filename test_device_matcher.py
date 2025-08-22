@@ -63,6 +63,9 @@ class TestDeviceMatcher(unittest.TestCase):
     ):
         self.env_vars["SOC_ARCHITECTURE"] = "arm64"
         self.env_vars["SOC_UDT"] = None
+        self.env_vars["USE_COMMON_DEVICES"] = True
+
+        use_common_devices = self.env_vars["USE_COMMON_DEVICES"]
 
         pid4_map = {
             "arm64": ["1001", "1003"],
@@ -91,7 +94,7 @@ class TestDeviceMatcher(unittest.TestCase):
         self.assertEqual(possible_duts, expected_devices)
 
         mock_convolute.get_pid4_list_from_architecture.assert_called_once_with(
-            "arm64", pid4_map
+            "arm64", pid4_map, use_common_devices
         )
 
     @patch("device_matcher.config_loader")

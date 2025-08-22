@@ -22,13 +22,18 @@ def get_pid4_list(soc, pid4_map):
     return pid4_list
 
 
-def get_pid4_list_from_architecture(soc_architecture, pid4_map):
+def get_pid4_list_from_architecture(
+    soc_architecture, pid4_map, use_common_devices: bool
+):
     logger.debug(f"Getting PID4 list for architecture: {soc_architecture}")
 
     matching_pid4s = []
     for soc_name, soc_data in pid4_map.items():
         for pid4_entry in soc_data.get("pid4", []):
-            if pid4_entry.get("architecture") == soc_architecture:
+            if (
+                pid4_entry.get("architecture") == soc_architecture
+                and pid4_entry.get("common_device") == use_common_devices
+            ):
                 matching_pid4s.append(pid4_entry.get("id"))
 
     logger.debug(f"Matching PID4 list: {matching_pid4s}")
