@@ -289,7 +289,10 @@ class Device:
             ).stdout.splitlines()
 
             for line in logs:
-                if "Event: UpdateCheckComplete" in line:
+                if (
+                    "Event: UpdateCheckComplete, Result - No updates available"
+                    in line
+                ):
                     logging.info("UpdateCheckComplete event detected!")
                     return
 
