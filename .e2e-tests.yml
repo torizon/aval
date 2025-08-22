@@ -83,6 +83,13 @@ e2e-test-sk-am62-nightly:
     SOC_UDT: "sk-am62"
     AVAL_EXTRA_OPTIONS: "--do-not-update"
 
+e2e-test-any-arm64-cd:
+  extends: .e2e-test-template
+  variables:
+    SOC_ARCHITECTURE: "arm64"
+    USE_COMMON_DEVICES: "true"
+    AVAL_EXTRA_OPTIONS: "--do-not-update"
+
 e2e-test-any-arm64-nightly:
   extends: .e2e-test-template
   variables:
