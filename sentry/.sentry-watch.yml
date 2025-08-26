@@ -57,6 +57,7 @@ sentry-container-build-manifest:
   tags:
     - saas-linux-small-amd64
   image: docker:dind
+  <<: *skip_on_watch
   needs:
     - sentry-container-build-amd64
     - sentry-container-build-arm64

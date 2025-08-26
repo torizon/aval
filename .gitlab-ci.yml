@@ -62,6 +62,7 @@ aval-container-build-manifest:
   tags:
     - saas-linux-small-amd64
   image: docker:dind
+  <<: *skip_on_watch
   needs:
     - aval-container-build-amd64
     - aval-container-build-arm64
@@ -122,6 +123,7 @@ e2e-tests-container-build-manifest:
   tags:
     - saas-linux-small-amd64
   image: docker:dind
+  <<: *skip_on_watch
   needs:
     - e2e-tests-container-build-amd64
     - e2e-tests-container-build-arm
