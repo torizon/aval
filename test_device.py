@@ -35,7 +35,7 @@ class TestDeviceGetCurrentBuild(unittest.TestCase):
                 "installedPackages": [
                     {
                         "component": self.hardware_id,
-                        "installed": {"packageName": expected_build},
+                        "installed": {"packageId": expected_build},
                     }
                 ]
             }
@@ -60,7 +60,7 @@ class TestDeviceGetCurrentBuild(unittest.TestCase):
                     "installedPackages": [
                         {
                             "component": self.hardware_id,
-                            "installed": {"packageName": expected_build},
+                            "installed": {"packageId": expected_build},
                         }
                     ]
                 }
@@ -96,7 +96,7 @@ class TestDeviceGetCurrentBuild(unittest.TestCase):
                 "installedPackages": [
                     {
                         "component": "wrong-hardware",
-                        "installed": {"packageName": "some-build"},
+                        "installed": {"packageId": "some-build"},
                     }
                 ]
             }

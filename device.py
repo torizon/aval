@@ -207,7 +207,7 @@ class Device:
                         logging.debug(pkg)
                         logging.debug(self._hardware_id)
                         if pkg["component"] == self._hardware_id:
-                            current_build = pkg["installed"]["packageName"]
+                            current_build = pkg["installed"]["packageId"]
                             logging.info(
                                 f"Current build for {self._hardware_id} is: {current_build}"
                             )
