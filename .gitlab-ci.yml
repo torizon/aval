@@ -107,9 +107,19 @@ e2e-tests-container-build-arm:
   extends: .e2e-tests-container-build
   tags:
     - saas-linux-small-arm64
-  variables:
-    PLATFORM: arm/v7
-    DOCKER_SUFIX: arm
+  script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
+    - docker run --privileged --rm tonistiigi/binfmt --install arm
+    - docker buildx create --config ./buildkitd.toml --name multiarch-builder --driver docker-container --platform linux/arm/v7 --use
+    - docker buildx inspect --bootstrap
+    - docker buildx build
+      --progress=plain
+      --file e2e-tests/Dockerfile
+      --push
+      --platform linux/arm/v7
+      -t ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME}-arm .
 
 e2e-tests-container-build-arm64:
   extends: .e2e-tests-container-build
