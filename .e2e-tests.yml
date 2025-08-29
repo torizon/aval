@@ -23,7 +23,7 @@
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
       --remove-databases
       --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
-      --delegation-config /aval/delegation_config.toml --before "docker system prune --force --all"
+      --delegation-config $DELEGATION_PATH --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
   artifacts:
     when: always
@@ -38,12 +38,14 @@ e2e-test-apalis-imx8qm-release-with-rac:
   variables:
     SOC_UDT: "apalis-imx8qm"
     USE_RAC: "true"
+    DELEGATION_PATH: "/aval/delegation_config.toml"
 
 e2e-test-apalis-imx8qm-nightly:
   extends: .e2e-test-template
   variables:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
+    DELEGATION_PATH: "/aval/delegation_config.toml"
   needs:
     - e2e-test-apalis-imx8qm-release-with-rac
 
@@ -52,6 +54,7 @@ e2e-test-apalis-imx8qm-release-again:
   variables:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
+    DELEGATION_PATH: "/aval/delegation_config.toml"
   needs:
     - e2e-test-apalis-imx8qm-nightly
 
@@ -85,26 +88,29 @@ e2e-test-sk-am62-nightly:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "sk-am62"
-    AVAL_EXTRA_OPTIONS: "--do-not-update"
+    DELEGATION_PATH: "/aval/delegation_config_common.toml"
 
 e2e-test-any-arm64-cd:
   extends: .e2e-test-template
   variables:
+    TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     USE_COMMON_DEVICES: "true"
-    AVAL_EXTRA_OPTIONS: "--do-not-update"
+    DELEGATION_PATH: "/aval/delegation_config_common.toml"
 
 e2e-test-any-arm64-nightly:
   extends: .e2e-test-template
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
+    DELEGATION_PATH: "/aval/delegation_config.toml"
 
 e2e-test-any-arm-release:
   extends: .e2e-test-template
   variables:
     TARGET_BUILD_TYPE: "release"
     SOC_ARCHITECTURE: "arm"
+    DELEGATION_PATH: "/aval/delegation_config.toml"
 
 e2e-test-any-arm64-shell:
   tags:
