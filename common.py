@@ -11,7 +11,7 @@ def parse_device_id(device_id):
 
 def parse_hardware_id(device_id):
     parts = device_id.split("-")
-    if "emmc" in device_id:
+    if "emmc" in device_id or "smarc" in device_id:
         return parts[0] + "-" + parts[1] + "-" + parts[2]
     else:
         return parts[0] + "-" + parts[1]
