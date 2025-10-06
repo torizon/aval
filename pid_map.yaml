@@ -291,6 +291,11 @@ verdin-imx95h:
 # Note that this PID4 list is purely fabricated for the purposes of having
 # an unique identifier.
 
+astra-sl1680:
+  pid4:
+    - id: "7400"
+      <<: *common_props_architecture_arm64_cd
+
 beagley-ai:
   pid4:
     - id: "7000"
