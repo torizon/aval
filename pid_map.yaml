@@ -324,6 +324,11 @@ sk-rzv2l:
     - id: "7200"
       <<: *common_props_architecture_arm64_cd
 
+winglet-sl1680:
+  pid4:
+    - id: "7401"
+      <<: *common_props_architecture_arm64_cd
+
 x86:
   pid4:
     - id: "7300"
