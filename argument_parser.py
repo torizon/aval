@@ -35,7 +35,7 @@ def parse_arguments():
     parser.add_argument(
         "--before",
         type=str,
-        help="Command to run before the main command on target device.",
+        help="Command to run immediately before the main command on target device, after the update",
     )
     parser.add_argument(
         "--delegation-config",
