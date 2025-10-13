@@ -10,7 +10,8 @@ Aval is meant to be used either locally or from a CI pipeline.
 Copied straight from `python3 main.py --help`.
 
 ```
-usage: main.py [-h] [--copy-artifact remote-path [local-output ...]] [--before BEFORE] [--delegation-config DELEGATION_CONFIG] [--device-config DEVICE_CONFIG] [--run-before-on-host RUN_BEFORE_ON_HOST]
+usage: main.py [-h] [--copy-artifact remote-path [local-output ...]] [--before BEFORE] [--delegation-config DELEGATION_CONFIG] [--device-config DEVICE_CONFIG]
+               [--run-before-on-host RUN_BEFORE_ON_HOST] [--pid-map PID_MAP] [--ignore-different-secondaries-between-updates] [--do-not-update] [--remove-databases]
                [command]
 
 Run commands on remote devices provisioned on Torizon Cloud.
@@ -22,13 +23,20 @@ options:
   -h, --help            show this help message and exit
   --copy-artifact remote-path [local-output ...]
                         Copies multiple files over Remote Access from the target device to local-output. Specify pairs of remote-path and local-output.
-  --before BEFORE       Command to run before the main command on target device.
+  --before BEFORE       Command to run immediately before the main command on target device, after the update
   --delegation-config DELEGATION_CONFIG
                         Path of config which tells Aval how to parse the target delegation.
   --device-config DEVICE_CONFIG
                         Path of config which tells Aval which device to match.
   --run-before-on-host RUN_BEFORE_ON_HOST
-                        Path of a file to be executed on the host system running Aval before running the main command in the DUT
+                        Command to be executed on host (the machine calling aval) after locking and updating the device.
+  --pid-map PID_MAP     Path of a PID4 map yaml file describing devices and their properties. By default it tries to use a `pid_map.yaml` located in the directory where Aval is called
+                        from.
+  --ignore-different-secondaries-between-updates
+                        Enable workaround for update paths with conflicting secondaries
+  --do-not-update       Instructs Aval to not update the board to the latest specified release. Uses whatever is installed in the device.
+  --remove-databases    Deletes databases to work around Aktualizr bug. Use this if your test involves updating the device (e.g. TCB deploy).
+
 ```
 
 ## Network Information
