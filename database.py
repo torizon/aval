@@ -3,6 +3,7 @@ import time
 import psycopg
 import logging
 from contextlib import contextmanager
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,35 @@ def get_db_connection():
         conn.close()
 
 
+_heartbeat_thread = None
+_heartbeat_stop_event = None
+
+
+# Update the timestamp every 2 minutes
+def _heartbeat_worker(device_uuid, stop_event, interval=120):
+    logger.info(f"Heartbeat thread started for {device_uuid}")
+    while not stop_event.is_set():
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE devices SET timestamp = NOW() WHERE device_uuid = %s",
+                        (device_uuid,),
+                    )
+                    conn.commit()
+            logger.debug(f"Heartbeat updated for {device_uuid}")
+        except Exception as e:
+            logger.error(f"Error updating heartbeat for {device_uuid}: {e}")
+
+        # Waits for the interval, but exits sooner if stop_event is set
+        stop_event.wait(interval)
+
+    logger.info(f"Heartbeat thread stopped for {device_uuid}")
+
+
 def acquire_lock(device_uuid):
+    global _heartbeat_thread, _heartbeat_stop_event
+
     logger.info(f"Attempting to acquire lock for device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
@@ -42,6 +71,15 @@ def acquire_lock(device_uuid):
                 logger.info(
                     f"Lock acquired successfully for device {device_uuid}"
                 )
+
+                _heartbeat_stop_event = threading.Event()
+                _heartbeat_thread = threading.Thread(
+                    target=_heartbeat_worker,
+                    args=(device_uuid, _heartbeat_stop_event),
+                    daemon=True,
+                )
+                _heartbeat_thread.start()
+
                 return True
             logger.info(
                 f"Failed to acquire lock for device {device_uuid}. Device is already locked or doesn't exist."
@@ -50,6 +88,8 @@ def acquire_lock(device_uuid):
 
 
 def release_lock(device_uuid):
+    global _heartbeat_thread, _heartbeat_stop_event
+
     logger.info(f"Attempting to release lock for device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
@@ -59,6 +99,13 @@ def release_lock(device_uuid):
             )
             conn.commit()
             logger.info(f"Lock released for device {device_uuid}")
+
+    if _heartbeat_thread and _heartbeat_stop_event:
+        _heartbeat_stop_event.set()
+        _heartbeat_thread.join(timeout=5)
+        logger.info(f"Heartbeat thread stopped for {device_uuid}")
+        _heartbeat_thread = None
+        _heartbeat_stop_event = None
 
 
 def device_exists(device_uuid):

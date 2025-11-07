@@ -27,15 +27,15 @@ def check_and_update_lock():
         )
         cur = conn.cursor()
 
-        # Check for locked entries older than 3 hours
-        three_hours_ago = datetime.now() - timedelta(hours=3)
+        # Check for locked entries older than 3 minutes
+        three_minutes_ago = datetime.now() - timedelta(minutes=3)
         query = f"""
         UPDATE {TABLE_NAME}
         SET {IS_LOCKED_COLUMN} = FALSE, {TIMESTAMP_COLUMN} = NOW()
         WHERE {IS_LOCKED_COLUMN} = TRUE AND {TIMESTAMP_COLUMN} < %s
         RETURNING device_uuid
         """
-        cur.execute(query, (three_hours_ago,))
+        cur.execute(query, (three_minutes_ago,))
 
         updated_rows = cur.fetchall()
 
