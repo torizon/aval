@@ -1,6 +1,8 @@
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, call
+import threading
+import time
 
 os.environ["POSTGRES_DB"] = "test_db"
 os.environ["POSTGRES_USER"] = "test_user"
@@ -51,6 +53,79 @@ class TestDatabase(unittest.TestCase):
 
         mock_acquire_lock.assert_called_with(device_uuid)
         mock_sleep.assert_called_with(0.1)
+
+    @patch("database.get_db_connection")
+    def test_heartbeat_worker_updates_and_stops(self, mock_get_db_connection):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_get_db_connection.return_value.__enter__.return_value = mock_conn
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+        stop_event = threading.Event()
+
+        t = threading.Thread(
+            target=database._heartbeat_worker,
+            args=("5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE", stop_event, 0.1),
+            daemon=True,
+        )
+        t.start()
+        time.sleep(0.25)
+        stop_event.set()
+        t.join(timeout=5)
+
+        # ensures that the UPDATE was called at least once
+        self.assertTrue(mock_cursor.execute.called)
+        calls = mock_cursor.execute.call_args_list
+        self.assertIn(
+            call(
+                "UPDATE devices SET timestamp = NOW() WHERE device_uuid = %s",
+                ("5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE",),
+            ),
+            calls,
+        )
+
+    @patch("database.get_db_connection")
+    def test_acquire_lock_starts_heartbeat_thread(self, mock_get_db_connection):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_get_db_connection.return_value.__enter__.return_value = mock_conn
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+        mock_cursor.fetchone.return_value = (False,)
+
+        result = database.acquire_lock("5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE")
+        self.assertTrue(result)
+
+        self.assertIsNotNone(database._heartbeat_thread)
+        self.assertTrue(database._heartbeat_thread.is_alive())
+
+        database._heartbeat_stop_event.set()
+        database._heartbeat_thread.join(timeout=2)
+        database._heartbeat_thread = None
+        database._heartbeat_stop_event = None
+
+    @patch("database.get_db_connection")
+    def test_release_lock_stops_heartbeat_thread(self, mock_get_db_connection):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_get_db_connection.return_value.__enter__.return_value = mock_conn
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+        database._heartbeat_stop_event = threading.Event()
+        database._heartbeat_thread = threading.Thread(
+            target=lambda: time.sleep(1), daemon=True
+        )
+        database._heartbeat_thread.start()
+
+        database.release_lock("5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE")
+
+        mock_cursor.execute.assert_called_with(
+            "UPDATE devices SET is_locked = FALSE WHERE device_uuid = %s",
+            ("5B76B5C7-FCCD-4FCD-A100-0CE33E8DCDFE",),
+        )
+
+        self.assertIsNone(database._heartbeat_thread)
+        self.assertIsNone(database._heartbeat_stop_event)
 
 
 if __name__ == "__main__":
