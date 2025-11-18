@@ -16,6 +16,18 @@ DB_PARAMS = {
 }
 
 
+# Global excepthook: any error not handled in the THREAD will terminate the app
+def _thread_crash_handler(args):
+    logger.error(
+        f"Unhandled exception in thread '{args.thread.name}': {args.exc_value}"
+    )
+    # Kill the process immediately, in that stage the release lock step won't work anyway
+    os._exit(1)
+
+
+threading.excepthook = _thread_crash_handler
+
+
 @contextmanager
 def get_db_connection():
     conn = psycopg.connect(**DB_PARAMS)
@@ -33,17 +45,15 @@ _heartbeat_stop_event = None
 def _heartbeat_worker(device_uuid, stop_event, interval=120):
     logger.info(f"Heartbeat thread started for {device_uuid}")
     while not stop_event.is_set():
-        try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        "UPDATE devices SET timestamp = NOW() WHERE device_uuid = %s",
-                        (device_uuid,),
-                    )
-                    conn.commit()
-            logger.debug(f"Heartbeat updated for {device_uuid}")
-        except Exception as e:
-            logger.error(f"Error updating heartbeat for {device_uuid}: {e}")
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE devices SET timestamp = NOW() WHERE device_uuid = %s",
+                    (device_uuid,),
+                )
+                conn.commit()
+
+        logger.debug(f"Heartbeat updated for {device_uuid}")
 
         # Waits for the interval, but exits sooner if stop_event is set
         stop_event.wait(interval)
