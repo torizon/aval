@@ -344,6 +344,167 @@ class TestDeviceHandler(unittest.TestCase):
         self.logger.info.assert_any_call(f"Created new device entry for {uuid}")
         self.logger.info.assert_any_call(f"Lock acquired for device {uuid}")
 
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    def test_hacking_session_normal_exit(
+        self, mock_Device, mock_common, mock_database
+    ):
+        uuid = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+
+        dut_instance.connection = MagicMock()
+        dut_instance.connection.shell.return_value = True
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = 'echo "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.hacking_session = True
+        args.run_before_on_host = None
+
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
+
+        self.assertTrue(result)
+
+        self.logger.info.assert_any_call(
+            f"Interactive session finished for device {uuid}"
+        )
+        self.logger.error.assert_not_called()
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    def test_hacking_session_exit_code_1(
+        self, mock_Device, mock_common, mock_database
+    ):
+        uuid = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+
+        dut_instance.connection = MagicMock()
+        dut_instance.connection.shell.side_effect = Exception("Exit code: 1")
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = 'echo "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.hacking_session = True
+        args.run_before_on_host = None
+
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
+
+        self.assertTrue(result)
+
+        self.logger.info.assert_any_call(
+            f"Interactive shell closed normally (exit 1) for device {uuid}"
+        )
+        self.logger.error.assert_not_called()
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    def test_hacking_session_exit_code_130(
+        self, mock_Device, mock_common, mock_database
+    ):
+        uuid = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+
+        dut_instance.connection = MagicMock()
+        dut_instance.connection.shell.side_effect = Exception("Exit code: 130")
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = 'echo "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.hacking_session = True
+        args.run_before_on_host = None
+
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
+
+        self.assertTrue(result)
+
+        self.logger.info.assert_any_call(
+            f"Interactive shell closed using SIGINT (exit 130) for device {uuid}"
+        )
+        self.logger.error.assert_not_called()
+
+    @patch("device_handler.database")
+    @patch("device_handler.common")
+    @patch("device_handler.Device")
+    def test_hacking_session_unexpected_error(
+        self, mock_Device, mock_common, mock_database
+    ):
+        _ = self.device["deviceUuid"]
+        hardware_id = "verdin-imx8mm"
+        mock_common.parse_hardware_id.return_value = hardware_id
+
+        mock_database.device_exists.return_value = True
+        mock_database.try_until_locked.return_value = True
+
+        dut_instance = MagicMock()
+        dut_instance.remote_session_ip = "192.168.1.100"
+        dut_instance.remote_session_port = 22
+        dut_instance.network_info = {"ip": "192.168.1.100"}
+        dut_instance.test_connection.return_value = True
+
+        dut_instance.connection = MagicMock()
+        dut_instance.connection.shell.side_effect = Exception(
+            "Some unexpected error"
+        )
+
+        mock_Device.return_value = dut_instance
+
+        args = MagicMock()
+        args.command = 'echo "Hello World"'
+        args.before = None
+        args.copy_artifact = None
+        args.hacking_session = True
+        args.run_before_on_host = None
+
+        result = process_devices(self.devices, self.cloud, self.env_vars, args)
+
+        self.assertTrue(result)
+
+        self.logger.error.assert_any_call(
+            "Failed to start interactive shell: Some unexpected error"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

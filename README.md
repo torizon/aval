@@ -10,8 +10,8 @@ Aval is meant to be used either locally or from a CI pipeline.
 Copied straight from `python3 main.py --help`.
 
 ```
-usage: main.py [-h] [--copy-artifact remote-path [local-output ...]] [--before BEFORE] [--delegation-config DELEGATION_CONFIG] [--device-config DEVICE_CONFIG]
-               [--run-before-on-host RUN_BEFORE_ON_HOST] [--pid-map PID_MAP] [--ignore-different-secondaries-between-updates] [--do-not-update] [--remove-databases]
+usage: main.py [-h] [--copy-artifact remote-path [local-output ...]] [--before BEFORE] [--delegation-config DELEGATION_CONFIG] [--device-config DEVICE_CONFIG] [--run-before-on-host RUN_BEFORE_ON_HOST] [--pid-map PID_MAP]
+               [--ignore-different-secondaries-between-updates] [--do-not-update] [--remove-databases] [--hacking-session]
                [command]
 
 Run commands on remote devices provisioned on Torizon Cloud.
@@ -36,7 +36,7 @@ options:
                         Enable workaround for update paths with conflicting secondaries
   --do-not-update       Instructs Aval to not update the board to the latest specified release. Uses whatever is installed in the device.
   --remove-databases    Deletes databases to work around Aktualizr bug. Use this if your test involves updating the device (e.g. TCB deploy).
-
+  --hacking-session     Opens an interactive terminal that can be used for debugging.
 ```
 
 ## Network Information

@@ -4,6 +4,7 @@ import json
 import subprocess
 import time
 import os
+import re
 
 import database
 import common
@@ -99,6 +100,29 @@ def process_devices(devices, cloud, env_vars, args):
                     else:
                         logger.error(f"Unsupported {os.name} OS")
                         raise Exception(f"Unsupported {os.name} OS")
+
+                if args.hacking_session:
+                    logger.info(
+                        f"Opening interactive SSH terminal for device {uuid}"
+                    )
+                    try:
+                        dut.connection.shell()
+                        logger.info(
+                            f"Interactive session finished for device {uuid}"
+                        )
+                    except Exception as e:
+                        if re.search(r"Exit code:\s*1\b", str(e)):
+                            logger.info(
+                                f"Interactive shell closed normally (exit 1) for device {uuid}"
+                            )
+                        elif re.search(r"Exit code:\s*130\b", str(e)):
+                            logger.info(
+                                f"Interactive shell closed using SIGINT (exit 130) for device {uuid}"
+                            )
+                        else:
+                            logger.error(
+                                f"Failed to start interactive shell: {e}"
+                            )
 
                 if args.before:
                     dut.connection.run(args.before)

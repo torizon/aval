@@ -79,6 +79,11 @@ def parse_arguments():
             "Deletes databases to work around Aktualizr bug. Use this if your test involves updating the device (e.g. TCB deploy)."
         ),
     )
+    parser.add_argument(
+        "--hacking-session",
+        action="store_true",
+        help=("Opens an interactive terminal that can be used for debugging."),
+    )
 
     args = parser.parse_args()
     return args
