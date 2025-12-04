@@ -35,6 +35,7 @@
 
 e2e-test-apalis-imx8qm-release-with-rac:
   extends: .e2e-test-template
+  resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
     USE_RAC: "true"
@@ -42,6 +43,7 @@ e2e-test-apalis-imx8qm-release-with-rac:
 
 e2e-test-apalis-imx8qm-nightly:
   extends: .e2e-test-template
+  resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
@@ -51,6 +53,7 @@ e2e-test-apalis-imx8qm-nightly:
 
 e2e-test-apalis-imx8qm-release-again:
   extends: .e2e-test-template
+  resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
@@ -59,6 +62,7 @@ e2e-test-apalis-imx8qm-release-again:
     - e2e-test-apalis-imx8qm-nightly
 
 e2e-test-verdin-imx8mpq-npu-release:
+  resource_group: verdin-imx8mpq
   tags:
     - all
   image:
@@ -85,6 +89,7 @@ e2e-test-verdin-imx8mpq-npu-release:
 
 e2e-test-sk-am62-nightly:
   extends: .e2e-test-template
+  resource_group: sk-am62
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "sk-am62"
@@ -92,6 +97,7 @@ e2e-test-sk-am62-nightly:
 
 e2e-test-x86-nightly:
   extends: .e2e-test-template
+  resource_group: x86
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "x86"
