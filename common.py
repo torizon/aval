@@ -13,6 +13,8 @@ def parse_hardware_id(device_id):
     parts = device_id.split("-")
     if "emmc" in device_id or "smarc" in device_id:
         return parts[0] + "-" + parts[1] + "-" + parts[2]
+    elif "imx93frdm" in device_id:
+        return parts[0]
     elif "torizon-x86" in device_id:
         return "intel-corei7-64"
     else:

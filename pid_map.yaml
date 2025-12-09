@@ -306,6 +306,11 @@ evk-imx95:
     - id: "0524"
       <<: *common_props_architecture_arm64_cd
 
+frdm-imx93:
+  pid4:
+    - id: "7500"
+      <<: *common_props_architecture_arm64_cd
+
 # https://www.ti.com/tool/SK-AM62
 sk-am62:
   pid4:
