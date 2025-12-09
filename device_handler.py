@@ -19,7 +19,7 @@ def process_devices(devices, cloud, env_vars, args):
     for index, device in enumerate(devices):
         uuid = device["deviceUuid"]
         hardware_id = common.parse_hardware_id(device["deviceId"])
-        logger.debug(f"The hardware_id is: {hardware_id}")
+        logger.debug(f"hardware_id: {hardware_id}")
 
         if not database.device_exists(uuid):
             database.create_device(uuid)
