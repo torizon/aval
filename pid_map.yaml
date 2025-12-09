@@ -311,6 +311,11 @@ frdm-imx93:
     - id: "7500"
       <<: *common_props_architecture_arm64_cd
 
+luna-sl1680:
+  pid4:
+    - id: "7401"
+      <<: *common_props_architecture_arm64_cd
+
 # https://www.ti.com/tool/SK-AM62
 sk-am62:
   pid4:
@@ -332,11 +337,6 @@ sk-am62p:
 sk-rzv2l:
   pid4:
     - id: "7200"
-      <<: *common_props_architecture_arm64_cd
-
-luna-sl1680:
-  pid4:
-    - id: "7401"
       <<: *common_props_architecture_arm64_cd
 
 x86:
