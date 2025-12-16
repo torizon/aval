@@ -192,7 +192,7 @@ fi
 [ -z "$DEVICE_NAME" ] && DEVICE_NAME=''
 [ -z "$HIBERNATED" ] && HIBERNATED="false"
 
-APIV2_URL=https://app.torizon.io/api/v2beta
+APIV2_URL=https://app.torizon.io/api/v2
 SOTA_DIR="${SYSROOT_PATH_PREFIX}"/var/sota
 
 while getopts ":hpu:g:t:d:n:z:i" opt; do

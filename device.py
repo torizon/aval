@@ -8,7 +8,7 @@ from fabric import Connection, Config
 from cloud import CloudAPI
 from http_wrapper import endpoint_call
 
-API_BASE_URL = "https://app.torizon.io/api/v2beta"
+API_BASE_URL = "https://app.torizon.io/api/v2"
 RAC_IP = "ras.torizon.io"
 
 

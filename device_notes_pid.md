@@ -40,7 +40,7 @@ curl -X POST \
 - Use the API to PUT the PID in the `notes` field:
 ```bash
 curl -X 'PUT' \
-  'https://app.torizon.io/api/v2beta/devices/notes/<device-uuid>' \
+  'https://app.torizon.io/api/v2/devices/notes/<device-uuid>' \
   -H 'accept: */*' \
   -H 'Authorization: Bearer <bearer-token>' \
   -H 'Content-Type: application/json' \
