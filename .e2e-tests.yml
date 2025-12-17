@@ -56,7 +56,7 @@ e2e-test-apalis-imx8qm-release-again:
   resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
-    TARGET_BUILD_TYPE: "nightly"
+    TARGET_BUILD_TYPE: "release"
     DELEGATION_PATH: "/aval/delegation_config.toml"
   needs:
     - e2e-test-apalis-imx8qm-nightly
