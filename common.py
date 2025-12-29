@@ -15,6 +15,8 @@ def parse_hardware_id(device_id):
         return parts[0] + "-" + parts[1] + "-" + parts[2]
     elif "imx93frdm" in device_id:
         return parts[0]
+    elif "torizon-sl1680" in device_id:
+        return parts[1]
     elif "torizon-x86" in device_id:
         return "intel-corei7-64"
     else:
