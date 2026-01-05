@@ -7,6 +7,7 @@ from fabric import Connection, Config
 
 from cloud import CloudAPI
 from http_wrapper import endpoint_call
+from requests.exceptions import HTTPError
 
 API_BASE_URL = "https://app.torizon.io/api/v2"
 RAC_IP = "ras.torizon.io"
@@ -97,9 +98,8 @@ class Device:
 
     def _create_remote_session(self):
         self._log.info(f"Creating a new remote session for device {self.uuid}")
-        res = None
         try:
-            res = endpoint_call(
+            endpoint_call(
                 url=API_BASE_URL
                 + f"/remote-access/device/{self.uuid}/sessions",
                 request_type="post",
@@ -117,12 +117,18 @@ class Device:
                 },
             )
 
-        except Exception as e:
-            if res and res.status_code == 409:
+        except HTTPError as e:
+            if e.response is not None and e.response.status_code == 409:
                 self._log.info(
                     "409 Conflict: Session already exists. Will not re-use the same session."
                 )
-            logging.error(e)
+            else:
+                self._log.error("HTTP error while creating remote session")
+            raise
+
+        except Exception as e:
+            self._log.error(f"Failed to create remote session: {e}")
+            raise
 
     def _get_remote_session(self):
         self._log.info(

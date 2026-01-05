@@ -73,7 +73,7 @@ class TestEndpointCall(unittest.TestCase):
 
         self.assertEqual(
             str(context.exception),
-            "Unexpected Error: request type posr not supported",
+            "request type posr not supported",
         )
         mock_get.assert_not_called()
 
@@ -106,14 +106,14 @@ class TestEndpointCall(unittest.TestCase):
         url = "http://example.com/api"
         headers = {"Authorization": "Bearer token"}
 
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(requests.exceptions.ConnectionError) as context:
             endpoint_call(
                 url, "get", headers=headers, body=None, json_data=None
             )
 
         self.assertEqual(
             str(context.exception),
-            "Error Connecting: Failed to connect",
+            "Failed to connect",
         )
         mock_get.assert_called_once_with(url, headers=headers)
 
@@ -127,14 +127,14 @@ class TestEndpointCall(unittest.TestCase):
         url = "http://example.com/api"
         headers = {"Authorization": "Bearer token"}
 
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(requests.exceptions.Timeout) as context:
             endpoint_call(
                 url, "get", headers=headers, body=None, json_data=None
             )
 
         self.assertEqual(
             str(context.exception),
-            "Timeout Error: Connection timed out",
+            "Connection timed out",
         )
         mock_get.assert_called_once_with(url, headers=headers)
 
@@ -148,14 +148,14 @@ class TestEndpointCall(unittest.TestCase):
         url = "http://example.com/api"
         headers = {"Authorization": "Bearer token"}
 
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(requests.exceptions.RequestException) as context:
             endpoint_call(
                 url, "get", headers=headers, body=None, json_data=None
             )
 
         self.assertEqual(
             str(context.exception),
-            "Oops: Something Else: Testing other request exception!",
+            "Testing other request exception!",
         )
         mock_get.assert_called_once_with(url, headers=headers)
 
@@ -172,7 +172,5 @@ class TestEndpointCall(unittest.TestCase):
                 url, "get", headers=headers, body=None, json_data=None
             )
 
-        self.assertEqual(
-            str(context.exception), "Unexpected Error: Not request error"
-        )
+        self.assertEqual(str(context.exception), "Not request error")
         mock_get.assert_called_once_with(url, headers=headers)

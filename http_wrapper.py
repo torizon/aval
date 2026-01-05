@@ -11,6 +11,8 @@ def endpoint_call(url, request_type, headers=None, body=None, json_data=None):
     try:
         if request_type == "get":
             res = requests.get(url, headers=headers)
+        elif request_type == "head":
+            res = requests.head(url, headers=headers)
         elif request_type == "post":
             res = requests.post(url, headers=headers, data=body, json=json_data)
         elif request_type == "delete":
@@ -19,25 +21,13 @@ def endpoint_call(url, request_type, headers=None, body=None, json_data=None):
             raise ValueError(f"request type {request_type} not supported")
 
         res.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        error_message = f"Http Error: {errh}"
-        raise errh
-    except requests.exceptions.ConnectionError as errc:
-        error_message = f"Error Connecting: {errc}"
-    except requests.exceptions.Timeout as errt:
-        error_message = f"Timeout Error: {errt}"
-    except requests.exceptions.RequestException as err:
-        error_message = f"Oops: Something Else: {err}"
-    except Exception as e:
-        error_message = f"Unexpected Error: {e}"
+        return res
 
-    if "error_message" in locals():
-        if res is not None:
+    except requests.exceptions.RequestException as e:
+        if e.response is not None:
             try:
-                logger.error(json.dumps(res.json(), indent=2))
-            except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON response: {e}")
-        logger.error(error_message)
-        raise Exception(error_message)
-
-    return res
+                logger.error(json.dumps(e.response.json(), indent=2))
+            except Exception:
+                logger.error(e.response.text)
+        logger.error(f"Request failed: {e}")
+        raise

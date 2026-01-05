@@ -324,25 +324,32 @@ class TestDeviceHandler(unittest.TestCase):
         # dut_instance.setup_rac_session.assert_called_with("ras.torizon.io")
         dut_instance.setup_usual_ssh_session.assert_not_called()
 
+    @patch("device_handler.Device")
     @patch("device_handler.database")
     @patch("device_handler.common")
     def test_process_device_device_not_in_database(
-        self, mock_common, mock_database
+        self, mock_common, mock_database, mock_Device
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
         mock_common.parse_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = False
+        mock_database.try_until_locked.return_value = True
+
+        mock_dut = MagicMock()
+        mock_dut.is_os_updated_to_latest.return_value = True
+        mock_Device.return_value = mock_dut
 
         result = process_devices(
             self.devices, self.cloud, self.env_vars, self.args
         )
 
         self.assertTrue(result)
-        mock_database.create_device.assert_called_with(uuid)
+        mock_database.create_device.assert_called_once_with(uuid)
         self.logger.info.assert_any_call(f"Created new device entry for {uuid}")
         self.logger.info.assert_any_call(f"Lock acquired for device {uuid}")
+        mock_database.release_lock.assert_called_once_with(uuid)
 
     @patch("device_handler.database")
     @patch("device_handler.common")
