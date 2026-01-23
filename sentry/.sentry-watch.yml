@@ -13,7 +13,9 @@
     - when: never
 
 .sentry-container-build:
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   services:
     - name: docker:dind
@@ -56,7 +58,9 @@ sentry-container-build-arm64:
 sentry-container-build-manifest:
   tags:
     - saas-linux-small-amd64
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   needs:
     - sentry-container-build-amd64

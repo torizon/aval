@@ -16,12 +16,16 @@ default:
 
 lint:
   <<: *skip_on_watch
-  image: registry.gitlab.com/pipeline-components/black:latest
+  image:
+    name: registry.gitlab.com/pipeline-components/black:latest
+    pull_policy: always
   script:
     - black --check --verbose --line-length 80 -- *.py
 
 .aval-container-build:
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   services:
     - name: docker:dind
@@ -61,7 +65,9 @@ aval-container-build-arm64:
 aval-container-build-manifest:
   tags:
     - saas-linux-small-amd64
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   needs:
     - aval-container-build-amd64
@@ -73,7 +79,9 @@ aval-container-build-manifest:
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval:${CI_COMMIT_REF_NAME}-arm64
 
 .e2e-tests-container-build:
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   services:
     - name: docker:dind
@@ -132,7 +140,9 @@ e2e-tests-container-build-arm64:
 e2e-tests-container-build-manifest:
   tags:
     - saas-linux-small-amd64
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   needs:
     - e2e-tests-container-build-amd64
@@ -188,7 +198,11 @@ unit-test-windows:
     - aval-container-build-manifest
 
 flake8-lint:
-  image: python:3.12
+  image:
+    name: python:3.12
+    # "pull_policy: if-not-present" would be the most appropriate option here;
+    # however, GitLab SaaS runners do not support this pull_policy
+    pull_policy: always
   <<: *skip_on_watch
   script:
     - pip install flake8
@@ -209,7 +223,9 @@ validate-yaml:
     - node validate_yaml.js
 
 release:
-  image: docker:dind
+  image:
+    name: docker:dind
+    pull_policy: always
   <<: *skip_on_watch
   stage: deploy
   services:
