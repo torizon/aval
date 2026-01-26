@@ -29,6 +29,7 @@ lint:
   <<: *skip_on_watch
   services:
     - name: docker:dind
+      pull_policy: always
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -85,6 +86,7 @@ aval-container-build-manifest:
   <<: *skip_on_watch
   services:
     - name: docker:dind
+      pull_policy: always
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -229,7 +231,8 @@ release:
   <<: *skip_on_watch
   stage: deploy
   services:
-    - docker:dind
+    - name: docker:dind
+      pull_policy: always
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
