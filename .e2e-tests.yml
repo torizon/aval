@@ -21,8 +21,7 @@
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases
-      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
+      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config $DELEGATION_PATH --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
   artifacts:
@@ -40,6 +39,7 @@ e2e-test-apalis-imx8qm-release-with-rac:
     SOC_UDT: "apalis-imx8qm"
     USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config.toml"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
 e2e-test-apalis-imx8qm-nightly:
   extends: .e2e-test-template
@@ -48,6 +48,7 @@ e2e-test-apalis-imx8qm-nightly:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "nightly"
     DELEGATION_PATH: "/aval/delegation_config.toml"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
     - e2e-test-apalis-imx8qm-release-with-rac
 
@@ -58,6 +59,7 @@ e2e-test-apalis-imx8qm-release-again:
     SOC_UDT: "apalis-imx8qm"
     TARGET_BUILD_TYPE: "release"
     DELEGATION_PATH: "/aval/delegation_config.toml"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
     - e2e-test-apalis-imx8qm-nightly
 
@@ -72,13 +74,14 @@ e2e-test-verdin-imx8mpq-npu-release:
   variables:
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   script:
     - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases
-      --copy-artifact /home/torizon/report.xml report.xml --delegation-config /aval/delegation_config.toml
-      --device-config /aval/verdin-imx8mpq-npu.toml --before "docker system prune --force --all" --ignore-different-secondaries-between-updates
+      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
+      --delegation-config /aval/delegation_config.toml --device-config /aval/verdin-imx8mpq-npu.toml
+      ${AVAL_EXTRA_OPTIONS} --before "docker system prune --force --all"
   artifacts:
     when: always
     reports:
@@ -94,6 +97,7 @@ e2e-test-sk-am62-nightly:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "sk-am62"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
+    AVAL_EXTRA_OPTIONS: ""
 
 e2e-test-x86-nightly:
   extends: .e2e-test-template
@@ -102,6 +106,7 @@ e2e-test-x86-nightly:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "x86"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
+    AVAL_EXTRA_OPTIONS: ""
 
 e2e-test-any-arm64-cd:
   extends: .e2e-test-template
@@ -110,6 +115,7 @@ e2e-test-any-arm64-cd:
     SOC_ARCHITECTURE: "arm64"
     USE_COMMON_DEVICES: "true"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
+    AVAL_EXTRA_OPTIONS: ""
 
 e2e-test-any-arm64-nightly:
   extends: .e2e-test-template
@@ -117,6 +123,7 @@ e2e-test-any-arm64-nightly:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     DELEGATION_PATH: "/aval/delegation_config.toml"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
 e2e-test-any-arm-release:
   extends: .e2e-test-template
@@ -124,6 +131,7 @@ e2e-test-any-arm-release:
     TARGET_BUILD_TYPE: "release"
     SOC_ARCHITECTURE: "arm"
     DELEGATION_PATH: "/aval/delegation_config.toml"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
 e2e-test-any-arm64-shell:
   tags:
@@ -133,6 +141,7 @@ e2e-test-any-arm64-shell:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
     - e2e-tests-container-build-manifest
     - unit-test
@@ -148,8 +157,7 @@ e2e-test-any-arm64-shell:
     - python main.py "docker run -e SOC_ARCHITECTURE=$SOC_ARCHITECTURE --privileged --pid host
       -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases
-      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
+      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config ./delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "./host_command.sh device_information.json"
   artifacts:
@@ -165,6 +173,7 @@ e2e-test-any-arm64-powershell:
     TARGET_BUILD_TYPE: "nightly"
     SOC_ARCHITECTURE: "arm64"
     AVAL_VERBOSE: "true"
+    AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
     - e2e-tests-container-build-manifest
     - unit-test-windows
@@ -187,8 +196,7 @@ e2e-test-any-arm64-powershell:
     - python main.py "docker run -e SOC_ARCHITECTURE=$env:SOC_ARCHITECTURE --privileged
       --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
       $env:CI_REGISTRY/$env:CI_PROJECT_PATH/aval-e2e-tests:$env:CI_COMMIT_REF_NAME /suites/run-tests.sh"
-      --remove-databases
-      --ignore-different-secondaries-between-updates --copy-artifact /home/torizon/report.xml report.xml
+      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
       --delegation-config .\delegation_config.toml --before "docker system prune --force --all"
       --run-before-on-host ".\host_command.ps1 device_information.json"
   artifacts:
