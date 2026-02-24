@@ -130,7 +130,7 @@ def process_devices(devices, cloud, env_vars, args):
                 if args.command:
                     dut.connection.run(args.command)
                     logger.info(
-                        f"Command '{args.command}' executed for device {uuid}"
+                        f"Command '{args.command}' executed for device {uuid} via connection at {dut.remote_session_ip}/{dut.remote_session_port}"
                     )
 
                 if args.copy_artifact:
