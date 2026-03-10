@@ -4,6 +4,7 @@ import convolute
 import common
 import config_loader
 import re
+from common import get_architectures_from_pid_map
 
 
 def find_possible_devices(cloud, args, env_vars):
@@ -12,20 +13,14 @@ def find_possible_devices(cloud, args, env_vars):
     test_whole_fleet = env_vars["TEST_WHOLE_FLEET"]
     target_build_type = env_vars["TARGET_BUILD_TYPE"]
     soc_udt = env_vars.get("SOC_UDT")
-    soc_architecture = env_vars.get("SOC_ARCHITECTURE")
     use_common_devices = env_vars.get("USE_COMMON_DEVICES")
 
     logger.info("Finding possible devices to send tests to...")
 
     if not args.device_config:
-        if soc_udt:
-            logger.info(
-                f"Matching configuration: SOC_UDT {soc_udt}, BUILD TYPE {target_build_type}"
-            )
-        else:
-            logger.info(
-                f"Matching configuration: SOC_ARCHITECTURE {soc_architecture}, BUILD TYPE {target_build_type}"
-            )
+        logger.info(
+            f"Matching configuration: SOC_UDT {soc_udt}, BUILD TYPE {target_build_type}"
+        )
     else:
         device_config = convolute.get_device_config_data(
             config_loader.load_device_config(args.device_config)
@@ -41,16 +36,19 @@ def find_possible_devices(cloud, args, env_vars):
         pid4_map = config_loader.load_pid_map(pid_map_path=args.pid_map)
         possible_duts = []
 
+        architectures = get_architectures_from_pid_map(args.pid_map)
+
         if args.device_config:
             pid4_targets = convolute.get_pid4_list_with_device_config(
                 device_config, pid4_map
             )
-        elif soc_architecture:
-            pid4_targets = convolute.get_pid4_list_from_architecture(
-                soc_architecture, pid4_map, use_common_devices
-            )
-        else:
-            pid4_targets = convolute.get_pid4_list(soc_udt, pid4_map)
+        elif soc_udt:
+            if soc_udt in architectures:
+                pid4_targets = convolute.get_pid4_list_from_architecture(
+                    soc_udt, pid4_map, use_common_devices
+                )
+            else:
+                pid4_targets = convolute.get_pid4_list(soc_udt, pid4_map)
 
         for device in cloud.provisioned_devices:
             pid4 = device.get("notes")

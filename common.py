@@ -1,4 +1,5 @@
 from prettytable import PrettyTable
+import config_loader
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,3 +34,15 @@ def pretty_print_devices(devices):
     table_string = table.get_string()
     for line in table_string.split("\n"):
         logger.info(line)
+
+
+def get_architectures_from_pid_map(pid_map):
+    pid4_map = config_loader.load_pid_map(pid_map_path=pid_map)
+
+    return {
+        pid["architecture"]
+        for machine in pid4_map.values()
+        if isinstance(machine, dict)
+        for pid in machine.get("pid4", [])
+        if isinstance(pid, dict) and pid.get("architecture")
+    }

@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+from common import get_architectures_from_pid_map
 
 
 def load_environment_variables(args):
@@ -12,19 +13,11 @@ def load_environment_variables(args):
         os.getenv("USE_COMMON_DEVICES", "False").lower() == "true"
     )
 
-    if not args.device_config:
-        soc_architecture = os.environ.get("SOC_ARCHITECTURE")
-        if not soc_architecture and not test_whole_fleet:
-            try:
-                soc_udt = os.environ["SOC_UDT"]
-            except KeyError as e:
-                logger.error(f"Missing environment variable: {e}")
-                sys.exit(1)
-        else:
-            soc_udt = None  # Handled by SOC_ARCHITECTURE or device config
-    else:
-        soc_udt = None  # Handled by device config
-        soc_architecture = None
+    soc_udt = os.environ.get("SOC_UDT") if not args.device_config else None
+
+    if not args.device_config and not soc_udt:
+        logger.error("Missing environment variable: SOC_UDT must be set")
+        sys.exit(1)
 
     required_env_vars = [
         "TORIZON_API_CLIENT_ID",
@@ -42,9 +35,15 @@ def load_environment_variables(args):
             logger.error(f"Missing environment variable: {e}")
             sys.exit(1)
 
-    if soc_udt and use_common_devices:
+    architectures = get_architectures_from_pid_map(args.pid_map)
+
+    if (
+        soc_udt is not None
+        and soc_udt not in architectures
+        and use_common_devices
+    ):
         logger.error(
-            "You cannot use SOC_UDT with USE_COMMON_DEVICES set to true."
+            "You cannot use target a specific device with USE_COMMON_DEVICES set to true."
         )
         sys.exit(1)
 
@@ -54,7 +53,5 @@ def load_environment_variables(args):
 
     if soc_udt is not None:
         env_vars["SOC_UDT"] = soc_udt
-    if soc_architecture is not None:
-        env_vars["SOC_ARCHITECTURE"] = soc_architecture
 
     return env_vars
