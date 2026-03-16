@@ -61,8 +61,7 @@ class TestDeviceMatcher(unittest.TestCase):
     def test_find_possible_devices_with_architecture(
         self, mock_common, mock_convolute, mock_config_loader
     ):
-        self.env_vars["SOC_ARCHITECTURE"] = "arm64"
-        self.env_vars["SOC_UDT"] = None
+        self.env_vars["SOC_UDT"] = "arm64"
         self.env_vars["USE_COMMON_DEVICES"] = True
 
         use_common_devices = self.env_vars["USE_COMMON_DEVICES"]
@@ -104,7 +103,6 @@ class TestDeviceMatcher(unittest.TestCase):
         self, mock_common, mock_convolute, mock_config_loader
     ):
         self.env_vars["SOC_UDT"] = "some_soc_udt"
-        self.env_vars["SOC_ARCHITECTURE"] = None
 
         pid4_map = {
             "some_soc_udt": ["0001", "0002"],
