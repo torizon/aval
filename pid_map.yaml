@@ -339,7 +339,7 @@ sk-rzv2l:
     - id: "7200"
       <<: *common_props_architecture_arm64_cd
 
-x86:
+torizon-x86:
   pid4:
     - id: "7300"
       <<: *common_props_architecture_x86_cd

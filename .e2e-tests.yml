@@ -99,12 +99,12 @@ e2e-test-sk-am62-nightly:
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
     AVAL_EXTRA_OPTIONS: ""
 
-e2e-test-x86-nightly:
+e2e-test-torizon-x86-nightly:
   extends: .e2e-test-template
-  resource_group: x86
+  resource_group: torizon-x86
   variables:
     TARGET_BUILD_TYPE: "nightly"
-    SOC_UDT: "x86"
+    SOC_UDT: "torizon-x86"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
     AVAL_EXTRA_OPTIONS: ""
 
