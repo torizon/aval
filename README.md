@@ -59,7 +59,7 @@ One interesting aspect is that Aval uses `fabric`, which echoes back the test ru
 
 For more information check the `main.py` file and `.gitlab-ci.yml`.
 
-## Developing 
+## Developing
 
 First, fill in the information from the provided `.env.template` into a new `.env` file.
 
@@ -133,10 +133,10 @@ For an example, check the [e2e-tests](./e2e-tests.yml) file. Currently supported
 
 ## Architecture-based Filtering
 
-If you don't care for a particular device, invoking Aval with just a `SOC_ARCHITECTURE=<arm|arm64|...>` will simply lock
+If you don't care for a particular device, invoking Aval with just a `SOC_UDT=<arm|arm64|...>` will simply lock
 the first device of that architecture.
 
-Note that setting `SOC_ARCHITECTURE` will make Aval ignore `SOC_UDT` and `--device-config`.
+Note that targeting an architecture will make Aval ignore `--device-config`.
 
 ## Device Information
 
@@ -152,15 +152,14 @@ the [host_command.sh file](./host_command.sh) and the flag usage can be observed
 - POSTGRES_PORT: port to connect to the database.
 - POSTGRES_USER: user to login to the database.
 - POSTGRES_PASSWORD: user password to login to the database.
-- TORIZON_API_CLIENT_ID/TORIZON_API_SECRET_ID: Torizon Cloud Credentials. See [How to Use Torizon Cloud API](https://developer.toradex.com/torizon/torizon-platform/torizon-api/#how-to-use-torizon-cloud-api) 
+- TORIZON_API_CLIENT_ID/TORIZON_API_SECRET_ID: Torizon Cloud Credentials. See [How to Use Torizon Cloud API](https://developer.toradex.com/torizon/torizon-platform/torizon-api/#how-to-use-torizon-cloud-api)
 - PUBLIC_KEY/PRIVATE_KEY: Public Key to be used in conjunction with `USE_RAC`
 - DEVICE_PASSWORD: The actual `torizon` user password for Torizon OS. Note that all devices must have the same password.
 - AVAL_VERBOSE: Makes Aval output all debug information.
 - USE_RAC: Instead of standard SSH, use RAC to get an SSH connection. Allows plugging devices from anywhere.
 - TARGET_BUILD_TYPE: `release` or `nightly`, referring to Torizon OS nightly or quarterly (release) builds.
-- SOC_UDT: Device to be used for the current test. Allowed names are keys in the [PID4 Map file](./pid_map.yaml).
-- SOC_ARCHITECTURE: Architecture of Device to be used for current test. If `SOC_ARCHITECTURE` is set, it will ignore both `SOC_UDT` and `--device-config` and lock the first device of a given architecture. Allowed architectures can be found as values for the `architecture` key under each `SOC_UDT` name in the [PID4 Map file](./pid_map.yaml).
-- TEST_WHOLE_FLEET: If `TEST_WHOLE_FLEET` is set, ignores `SOC_ARCHITECTURE`, `SOC_UDT` and `--device-config`.
+- SOC_UDT: Device to be used for the current test. Allowed names are keys in the [PID4 Map file](./pid_map.yaml). Alternatively an architecture can also be specified. If an architecture is specified, it will ignore `--device-config` and lock the first device of the given architecture. Allowed architectures can be found as values for the `architecture` key under each `SOC_UDT` name in the [PID4 Map file](./pid_map.yaml).
+- TEST_WHOLE_FLEET: If `TEST_WHOLE_FLEET` is set, ignores `SOC_UDT` and `--device-config`.
 
 ## Contributing
 
