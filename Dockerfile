@@ -1,4 +1,4 @@
-FROM python:3.12 AS test
+FROM python:3.12
 
 RUN mkdir -p /aval
 COPY . /aval
