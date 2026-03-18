@@ -1,3 +1,23 @@
+# AWS RDS + SSM Tunneling + IAM Authentication
+$env:AWS_ACCESS_KEY_ID = ""
+$env:AWS_DEFAULT_REGION = ""
+$env:AWS_SECRET_ACCESS_KEY = ""
+$env:AWS_INSTANCE_ID = ""
+$env:AWS_RDS_HOST = ""
+$env:POSTGRES_DB = ""
+$env:LOCAL_PORT = ""
+$env:REMOTE_PORT = ""
+$env:POSTGRES_USER = ""
+$env:TORIZON_API_CLIENT_ID = ""
+$env:TORIZON_API_SECRET_ID = ""
+$env:PUBLIC_KEY = ""
+$env:PRIVATE_KEY = ""
+$env:DEVICE_PASSWORD = ""
+$env:AVAL_VERBOSE = ""
+$env:USE_RAC = ""
+$env:TARGET_BUILD_TYPE = ""
+
+# Direct database connection
 $env:POSTGRES_DB = ""
 $env:POSTGRES_HOST = ""
 $env:POSTGRES_PORT = ""

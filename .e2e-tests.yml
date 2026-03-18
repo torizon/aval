@@ -149,6 +149,7 @@ e2e-test-any-arm64-shell:
     - sudo apt update && sudo apt upgrade -y
     - sudo apt install -y python3 python3-venv make
     - python3 --version
+    - ./aws_database/install-ssm.sh
   script:
     - python3 -m venv venv
     - source venv/bin/activate
@@ -188,6 +189,7 @@ e2e-test-any-arm64-powershell:
       }
       $global:LASTEXITCODE = 0
     - python --version
+    - .\aws_database\install-ssm.ps1
   script:
     - Write-Output "Setting up environment for Windows runner..."
     - python -m venv venv

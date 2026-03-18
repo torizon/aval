@@ -3,6 +3,7 @@ import sys
 
 import logging_setup
 import argument_parser
+import database
 import environment
 import device_matcher
 import device_handler
@@ -39,4 +40,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        database.shutdown_database_access()

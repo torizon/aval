@@ -77,7 +77,8 @@ sentry-container-build-manifest:
   image:
     name: ${CI_REGISTRY}/${CI_PROJECT_PATH}/sentry:${CI_COMMIT_REF_NAME}
     pull_policy: always
-  script: cd /sentry && uv run main.py
+  script:
+    - cd /sentry && uv run main.py
   variables:
     GIT_STRATEGY: none
 

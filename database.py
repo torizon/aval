@@ -4,16 +4,22 @@ import psycopg
 import logging
 from contextlib import contextmanager
 import threading
+from aws_database.ssm_tunnel import close_ssm_tunnel, ensure_ssm_tunnel
 
 logger = logging.getLogger(__name__)
 
-DB_PARAMS = {
-    "dbname": os.environ["POSTGRES_DB"],
-    "user": os.environ["POSTGRES_USER"],
-    "password": os.environ["POSTGRES_PASSWORD"],
-    "host": os.environ["POSTGRES_HOST"],
-    "port": os.environ["POSTGRES_PORT"],
-}
+USE_AWS = bool(os.environ.get("AWS_RDS_HOST"))
+
+if USE_AWS:
+    from aws_database.generate_token import generate_token
+
+    logger.info("AWS_RDS_HOST detected → using SSM tunnel + IAM authentication")
+    host = "localhost"  # Use localhost via SSM tunnel
+    port = int(os.environ["LOCAL_PORT"])
+else:
+    logger.info("AWS_RDS_HOST not set → using direct database connection")
+    host = os.environ["POSTGRES_HOST"]
+    port = int(os.environ["POSTGRES_PORT"])
 
 
 # Global excepthook: any error not handled in the THREAD will terminate the app
@@ -21,6 +27,9 @@ def _thread_crash_handler(args):
     logger.error(
         f"Unhandled exception in thread '{args.thread.name}': {args.exc_value}"
     )
+
+    shutdown_database_access()
+
     # Kill the process immediately, in that stage the release lock step won't work anyway
     os._exit(1)
 
@@ -30,11 +39,34 @@ threading.excepthook = _thread_crash_handler
 
 @contextmanager
 def get_db_connection():
-    conn = psycopg.connect(**DB_PARAMS)
+    if USE_AWS:
+        ensure_ssm_tunnel()
+        password = generate_token()
+    else:
+        password = os.environ["POSTGRES_PASSWORD"]
+
+    conn = psycopg.connect(
+        dbname=os.environ["POSTGRES_DB"],
+        user=os.environ["POSTGRES_USER"],
+        password=password,
+        host=host,
+        port=port,
+    )
+
     try:
         yield conn
     finally:
         conn.close()
+
+
+def shutdown_database_access():
+    if not USE_AWS:
+        return
+
+    try:
+        close_ssm_tunnel()
+    except Exception as e:
+        logger.error(f"Failed to close AWS SSM tunnel cleanly: {e}")
 
 
 _heartbeat_thread = None

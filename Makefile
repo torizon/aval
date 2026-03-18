@@ -30,6 +30,10 @@ lintmat: format lint
 install:
 	pip install -r requirements.txt
 
+.PHONY: install-ssm
+install-ssm:
+	./aws_database/install-ssm.sh
+
 .PHONY: test
 test:
 	coverage run -m unittest discover -v -s . -p 'test_*.py'

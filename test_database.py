@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 import threading
 import time
+from types import SimpleNamespace
 
 os.environ["POSTGRES_DB"] = "test_db"
 os.environ["POSTGRES_USER"] = "test_user"
@@ -126,6 +127,26 @@ class TestDatabase(unittest.TestCase):
 
         self.assertIsNone(database._heartbeat_thread)
         self.assertIsNone(database._heartbeat_stop_event)
+
+    @patch("database.logger")
+    @patch("database.shutdown_database_access")
+    @patch("database.os._exit", side_effect=SystemExit(1))
+    def test_thread_crash_handler_closes_tunnel_before_exit(
+        self, mock_exit, mock_shutdown_database_access, mock_logger
+    ):
+        args = SimpleNamespace(
+            thread=SimpleNamespace(name="heartbeat-worker"),
+            exc_value=RuntimeError("crash_error"),
+        )
+
+        with self.assertRaises(SystemExit):
+            database._thread_crash_handler(args)
+
+        mock_logger.error.assert_called_once_with(
+            "Unhandled exception in thread 'heartbeat-worker': crash_error"
+        )
+        mock_shutdown_database_access.assert_called_once_with()
+        mock_exit.assert_called_once_with(1)
 
 
 if __name__ == "__main__":

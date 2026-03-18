@@ -59,6 +59,39 @@ One interesting aspect is that Aval uses `fabric`, which echoes back the test ru
 
 For more information check the `main.py` file and `.gitlab-ci.yml`.
 
+## Aval's Database
+
+Aval uses PostgreSQL as a locking mechanism. This can be configured in two different ways:
+
+### 1. Direct Database Connection (legacy / simple setup)
+
+You can connect directly to a PostgreSQL instance using static credentials:
+
+This is the simplest setup, but requires exposing your database endpoint and managing credentials manually.
+
+### Required Environment Variables
+
+Use the variables in `.env-template` under `# Direct database connection`.
+
+---
+
+### 2. AWS RDS + SSM Tunneling + IAM Authentication
+
+Aval supports a more secure approach using:
+
+- AWS RDS
+- EC2 as a bastion
+- AWS SSM (Session Manager) for tunneling
+- IAM authentication tokens (no static DB password)
+
+### Required Environment Variables
+
+Use the variables in `.env-template` under `# AWS RDS + SSM Tunneling + IAM Authentication`.
+
+When `AWS_RDS_HOST` is set, Aval starts and stops the SSM tunnel
+automatically. You still need the AWS CLI and Session Manager Plugin
+installed in the environment where Aval runs.
+
 ## Developing
 
 First, fill in the information from the provided `.env.template` into a new `.env` file.
@@ -82,6 +115,7 @@ With `brew` you should run the following:
 $ brew install python@3.12
 $ python3.12 -m venv venv
 $ source venv/bin/activate
+$ make install-ssm
 $ make install
 $ make test
 $ make format
@@ -92,6 +126,7 @@ If you want to run natively in shell:
 ```
 $ python3 -m venv venv
 $ source venv/bin/activate
+$ make install-ssm
 $ make install
 $ eval $(cat .env) && SOC_UDT="apalis-imx8qm" python main.py --delegation-config delegation_config.toml "echo Hello"
 ```
@@ -104,8 +139,13 @@ First, fill in the information from the provided `.env_template.ps1` into a new 
 $ python -m venv venv
 $ .\venv\Scripts\Activate.ps1
 $ pip install -r requirements.txt
+$ .\aws_database\install-ssm.ps1
 $ . .\.env.ps1; $env:SOC_UDT = "apalis-imx8qm"; python main.py --delegation-config delegation_config.toml "echo Hello"
 ```
+
+If you need to clean up stale SSM sessions after an interrupted run, you can
+still use `./aws_database/kill-ssm-tunnels.sh` or
+`.\aws_database\kill-ssm-tunnels.ps1`.
 
 ## Aval's Database
 
