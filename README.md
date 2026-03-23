@@ -63,13 +63,10 @@ For more information check the `main.py` file and `.gitlab-ci.yml`.
 
 First, fill in the information from the provided `.env.template` into a new `.env` file.
 
-The easiest way to develop is setting up a mountpoint inside the Python container like so
+The easiest way to develop is by mounting only the `.env` file inside the AVAL container like so:
 
 ```
-$ docker run -it -v $(pwd):/aval --workdir=/aval python:3.12 bash
-# make install
-# make test
-# make format
+$ docker run -it -v $(pwd)/.env:/aval/.env --entrypoint bash registry.gitlab.com/toradex/rd/torizon-core/aval/aval:main
 ```
 
 To run a test (echo Hello) on a provisioned Apalis iMX8 QuadMax
