@@ -1,8 +1,8 @@
-import logging
 import requests
 import json
+import logging_setup
 
-logger = logging.getLogger(__name__)
+logger = logging_setup.setup_logging()
 
 
 def endpoint_call(url, request_type, headers=None, body=None, json_data=None):

@@ -1,10 +1,17 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import datetime
-from device import Device
+
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    from device import Device
 
 
 class TestDeviceInitialization(unittest.TestCase):
+    def setUp(self):
+        patcher_logger = patch("device.logger")
+        self.addCleanup(patcher_logger.stop)
+        self.logger = patcher_logger.start()
+
     @patch("device.Device._create_remote_session")
     @patch("device.endpoint_call")
     def test_initialization_refresh_called(

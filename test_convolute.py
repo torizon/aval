@@ -1,7 +1,10 @@
 import unittest
-import convolute
 import yaml
 import toml
+from unittest.mock import MagicMock, patch
+
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    import convolute
 
 pid4_map_data = {
     "verdin-imx8mp": {

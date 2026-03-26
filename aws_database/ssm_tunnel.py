@@ -1,12 +1,19 @@
 import atexit
-import logging
 import os
 import shutil
 import subprocess
+import sys
 import threading
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+import logging_setup  # noqa: E402
+
+logger = logging_setup.setup_logging()
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 _tunnel_lock = threading.Lock()

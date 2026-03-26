@@ -1,18 +1,19 @@
-import logging
 import toml
 import re
 from datetime import datetime
 import email.utils
 
 from http_wrapper import endpoint_call
+import logging_setup
 
 API_BASE_URL = "https://app.torizon.io/api/v2"
+logger = logging_setup.setup_logging()
 
 
 class CloudAPI:
 
     def __init__(self, api_client, api_secret, delegation_config_path):
-        self._log = logging.getLogger(__name__)
+        self._log = logger
 
         self.api_client = api_client
         self.api_secret = api_secret
@@ -53,8 +54,7 @@ class CloudAPI:
             json_data=None,
         )
 
-        if self._log.isEnabledFor(logging.DEBUG):
-            self._log.debug(res.json()["values"])
+        self._log.debug(res.json()["values"])
         self._log.debug("Got provisioned devices on platform")
         return res.json()["values"]
 
@@ -237,8 +237,7 @@ class CloudAPI:
             json_data=None,
         )
 
-        if self._log.isEnabledFor(logging.DEBUG):
-            self._log.debug(res.json()["values"])
+        self._log.debug(res.json()["values"])
 
         latest_build = next(
             (item["packageId"] for item in res.json().get("values", [])), None
@@ -263,8 +262,7 @@ class CloudAPI:
             json_data=None,
         )
 
-        if self._log.isEnabledFor(logging.DEBUG):
-            self._log.debug(res.json()["values"])
+        self._log.debug(res.json()["values"])
         self._log.info(f"Got package metadata for device {uuid}")
         return res.json()["values"]
 
@@ -284,8 +282,7 @@ class CloudAPI:
             json_data=None,
         )
 
-        if self._log.isEnabledFor(logging.DEBUG):
-            self._log.debug(res.json())
+        self._log.debug(res.json())
         self._log.debug(
             f"Got package update assignment status for device {uuid}"
         )

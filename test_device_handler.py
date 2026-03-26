@@ -3,16 +3,15 @@ from unittest.mock import MagicMock, patch, call
 import sys
 import subprocess
 
-from device_handler import process_devices
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    from device_handler import process_devices
 
 
 class TestDeviceHandler(unittest.TestCase):
     def setUp(self):
-        patcher_logging = patch("device_handler.logging")
-        self.addCleanup(patcher_logging.stop)
-        self.mock_logging = patcher_logging.start()
-        self.logger = MagicMock()
-        self.mock_logging.getLogger.return_value = self.logger
+        patcher_logger = patch("device_handler.logger")
+        self.addCleanup(patcher_logger.stop)
+        self.logger = patcher_logger.start()
 
         patcher_sys_exit = patch("device_handler.sys.exit")
         self.addCleanup(patcher_sys_exit.stop)

@@ -1,16 +1,15 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from device_matcher import find_possible_devices
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    from device_matcher import find_possible_devices
 
 
 class TestDeviceMatcher(unittest.TestCase):
     def setUp(self):
-        patcher = patch("device_matcher.logging")
-        self.addCleanup(patcher.stop)
-        self.mock_logging = patcher.start()
-        self.logger = MagicMock()
-        self.mock_logging.getLogger.return_value = self.logger
+        patcher_logger = patch("device_matcher.logger")
+        self.addCleanup(patcher_logger.stop)
+        self.logger = patcher_logger.start()
 
         patcher_sys_exit = patch("device_matcher.sys.exit")
         self.addCleanup(patcher_sys_exit.stop)

@@ -1,16 +1,16 @@
 import unittest
 from unittest.mock import MagicMock, patch
 import requests
-from http_wrapper import endpoint_call
+
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    from http_wrapper import endpoint_call
 
 
 class TestEndpointCall(unittest.TestCase):
     def setUp(self):
-        patcher_logging = patch("http_wrapper.logger")
-        self.addCleanup(patcher_logging.stop)
-        self.mock_logging = patcher_logging.start()
-        self.logger = MagicMock()
-        self.mock_logging.getLogger.return_value = self.logger
+        patcher_logger = patch("http_wrapper.logger")
+        self.addCleanup(patcher_logger.stop)
+        self.logger = patcher_logger.start()
 
     @patch("http_wrapper.requests.get")
     def test_get_success(self, mock_get):

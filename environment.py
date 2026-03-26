@@ -1,12 +1,12 @@
 import os
 import sys
-import logging
 from common import get_architectures_from_pid_map
+import logging_setup
+
+logger = logging_setup.setup_logging()
 
 
 def load_environment_variables(args):
-    logger = logging.getLogger(__name__)
-
     test_whole_fleet = os.getenv("TEST_WHOLE_FLEET", "False").lower() == "true"
     use_rac = os.getenv("USE_RAC", "False").lower() == "true"
     use_common_devices = (

@@ -1,9 +1,9 @@
 # The name of this module is "convolute" because "filter" is a Python keyword
 # and most of us are EEs anyway.
 
-import logging
+import logging_setup
 
-logger = logging.getLogger(__name__)
+logger = logging_setup.setup_logging()
 
 
 def get_pid4_list(soc, pid4_map):

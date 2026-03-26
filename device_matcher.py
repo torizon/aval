@@ -1,15 +1,15 @@
-import logging
 import sys
 import convolute
 import common
 import config_loader
 import re
 from common import get_architectures_from_pid_map
+import logging_setup
+
+logger = logging_setup.setup_logging()
 
 
 def find_possible_devices(cloud, args, env_vars):
-    logger = logging.getLogger(__name__)
-
     test_whole_fleet = env_vars["TEST_WHOLE_FLEET"]
     target_build_type = env_vars["TARGET_BUILD_TYPE"]
     soc_udt = env_vars.get("SOC_UDT")

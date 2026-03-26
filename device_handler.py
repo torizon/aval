@@ -1,4 +1,3 @@
-import logging
 import sys
 import json
 import subprocess
@@ -8,14 +7,14 @@ import re
 
 import database
 import common
+import logging_setup
 from device import Device
 
 RAC_IP = "ras.torizon.io"
+logger = logging_setup.setup_logging()
 
 
 def process_devices(devices, cloud, env_vars, args):
-    logger = logging.getLogger(__name__)
-
     for index, device in enumerate(devices):
         uuid = device["deviceUuid"]
         hardware_id = common.parse_hardware_id(device["deviceId"])

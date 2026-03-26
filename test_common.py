@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import MagicMock, patch
 
-from common import parse_device_id, parse_hardware_id
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    from common import parse_device_id, parse_hardware_id
 
 device_id_dict = {
     "verdin-imx8mm-07214001-9334fa": "imx8mm",

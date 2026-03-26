@@ -1,8 +1,16 @@
 import os
+import sys
+from pathlib import Path
 import boto3
-import logging
 
-logger = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+import logging_setup  # noqa: E402
+
+logger = logging_setup.setup_logging()
 
 
 def generate_token():

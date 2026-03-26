@@ -1,12 +1,12 @@
 import os
 import time
 import psycopg
-import logging
 from contextlib import contextmanager
 import threading
 from aws_database.ssm_tunnel import close_ssm_tunnel, ensure_ssm_tunnel
+import logging_setup
 
-logger = logging.getLogger(__name__)
+logger = logging_setup.setup_logging()
 
 USE_AWS = bool(os.environ.get("AWS_RDS_HOST"))
 

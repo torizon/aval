@@ -3,6 +3,7 @@ FROM python:3.12
 RUN mkdir -p /sentry
 COPY ./sentry /sentry
 COPY ./aws_database /aws_database
+COPY ./logging_setup.py /logging_setup.py
 WORKDIR /sentry
 
 RUN pip install uv

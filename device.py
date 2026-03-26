@@ -1,23 +1,24 @@
 import dateutil
 import json
 import requests
-import logging
 import time
 from fabric import Connection, Config
 
 from cloud import CloudAPI
 from http_wrapper import endpoint_call
 from requests.exceptions import HTTPError
+import logging_setup
 
 API_BASE_URL = "https://app.torizon.io/api/v2"
 RAC_IP = "ras.torizon.io"
+logger = logging_setup.setup_logging()
 
 
 class Device:
     def __init__(self, cloud_api: CloudAPI, uuid, hardware_id, env_vars):
-        self._log = logging.getLogger(__name__)
+        self._log = logger
 
-        logging.debug(f"Initializing Device object {hardware_id} for {uuid}")
+        self._log.debug(f"Initializing Device object {hardware_id} for {uuid}")
 
         self._cloud_api = cloud_api
         self._hardware_id = hardware_id
@@ -210,21 +211,21 @@ class Device:
                 )
                 for device in metadata:
                     for pkg in device["installedPackages"]:
-                        logging.debug(pkg)
-                        logging.debug(self._hardware_id)
+                        self._log.debug(pkg)
+                        self._log.debug(self._hardware_id)
                         if pkg["component"] == self._hardware_id:
                             current_build = pkg["installed"]["packageId"]
-                            logging.info(
+                            self._log.info(
                                 f"Current build for {self._hardware_id} is: {current_build}"
                             )
                             return current_build
             except Exception as e:
-                logging.info(
+                self._log.info(
                     f"Couldn't parse the current build for {self.uuid} at {attempt} attempt, failed with error: {e}"
                 )
 
             if attempt < max_attempts:
-                logging.info(f"Retrying in {delay_seconds} seconds...")
+                self._log.info(f"Retrying in {delay_seconds} seconds...")
                 time.sleep(delay_seconds)
 
         raise Exception(
@@ -252,9 +253,9 @@ class Device:
 
         # FIXME: currently a bug on the Cloud side. Returns 201 when succesfull.
         if res.status_code == 200 or res.status_code == 201:
-            logging.info("Updating succesfully issued.")
+            self._log.info("Updating succesfully issued.")
         else:
-            logging.error(
+            self._log.error(
                 f"Update launch request failed with status code: {res.status_code}"
             )
             self._log.info(json.dumps(res.json(), indent=2))
@@ -269,7 +270,7 @@ class Device:
         )
 
         if current_build == self._latest_build:
-            logging.info(
+            self._log.info(
                 f"Device {self.uuid} is already on latest build {current_build}"
             )
             return True
@@ -299,7 +300,7 @@ class Device:
                     "Event: UpdateCheckComplete, Result - No updates available"
                     in line
                 ):
-                    logging.info("UpdateCheckComplete event detected!")
+                    self._log.info("UpdateCheckComplete event detected!")
                     return
 
             if time.time() - start_time > timeout:
@@ -312,7 +313,7 @@ class Device:
 
     def remove_databases(self):
         # This is a temporary workaround for the aktualizr bug
-        logging.info("Attempting to remove local databases")
+        self._log.info("Attempting to remove local databases")
         self.connection.run(
             f"echo {self._password} | sudo -S sh -c 'systemctl stop aktualizr-torizon && (rm -rf /var/sota/sql.db /var/sota/storage/* || true) && systemctl start aktualizr-torizon'"
         )
@@ -327,11 +328,11 @@ class Device:
         if remove_databases:
             self.remove_databases()
 
-        logging.info(
+        self._log.info(
             f"Launching update to {self._latest_build} with {target_build_type}"
         )
         self.launch_update(self._latest_build)
-        logging.info("Waiting until update is complete...")
+        self._log.info("Waiting until update is complete...")
 
         inflight = self._cloud_api.extract_in_flight(
             self._cloud_api.get_assigment_status_for_device(self.uuid)
@@ -343,7 +344,7 @@ class Device:
             )
             time.sleep(15)
 
-        logging.info(
+        self._log.info(
             "The device has seen the update request and will download and install it now"
         )
 
@@ -352,7 +353,9 @@ class Device:
             attempts = 0
 
             while attempts < max_attempts:
-                logging.info("Waiting for the update to finish to remove fuse")
+                self._log.info(
+                    "Waiting for the update to finish to remove fuse"
+                )
 
                 if self.is_os_updated_to_latest(
                     self._env_vars["TARGET_BUILD_TYPE"]
@@ -364,10 +367,10 @@ class Device:
                         self.connection.run(
                             f"echo {self._password} | sudo -S sh -c 'systemctl stop aktualizr-torizon && rm -rf /var/sota/storage/fuse || true && systemctl start aktualizr-torizon'"
                         )
-                        logging.info("Fuse secondary was removed.")
+                        self._log.info("Fuse secondary was removed.")
                         break
                     except Exception as e:
-                        logging.info(
+                        self._log.info(
                             f"Failed to remove fuse at {attempts} attempt: {e}. Probably the module is rebooting"
                         )
                 time.sleep(30)
@@ -379,7 +382,7 @@ class Device:
                 )
 
         while self._cloud_api.get_assigment_status_for_device(self.uuid) != []:
-            logging.info("Still updating...")
+            self._log.info("Still updating...")
             time.sleep(60)
 
     def _get_network_info(self):

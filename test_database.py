@@ -14,10 +14,16 @@ os.environ["POSTGRES_PORT"] = "5432"
 # E402 requires imports to be on top of the file, but we must export the
 # POSTGRES* environment variables before `import`ing `database`, so we
 # ignore the linter in this case.
-import database  # noqa: E402
+with patch("logging_setup.setup_logging", return_value=MagicMock()):
+    import database  # noqa: E402
 
 
 class TestDatabase(unittest.TestCase):
+    def setUp(self):
+        patcher_logger = patch("database.logger")
+        self.addCleanup(patcher_logger.stop)
+        self.logger = patcher_logger.start()
+
     @patch("database.acquire_lock")
     def test_try_until_locked_success(self, mock_acquire_lock):
         mock_acquire_lock.return_value = True

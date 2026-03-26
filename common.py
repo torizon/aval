@@ -1,8 +1,8 @@
 from prettytable import PrettyTable
 import config_loader
-import logging
+import logging_setup
 
-logger = logging.getLogger(__name__)
+logger = logging_setup.setup_logging()
 
 
 def parse_device_id(device_id):
