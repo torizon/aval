@@ -40,7 +40,7 @@ def generate_token():
         DBUsername=user,
     )
 
-    logger.info("AWS RDS IAM auth token generated successfully")
+    logger.debug("AWS RDS IAM auth token generated successfully")
     return token
 
 
