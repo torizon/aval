@@ -32,6 +32,8 @@
 e2e-test-apalis-imx8qm-release-with-rac:
   extends: .e2e-test-template
   resource_group: apalis-imx8qm
+  tags:
+    - saas-linux-small-amd64
   variables:
     SOC_UDT: "apalis-imx8qm"
     USE_RAC: "true"
