@@ -89,6 +89,8 @@ unit-test:
     - coverage report -m
     - coverage xml
   artifacts:
+    paths:
+      - coverage.xml
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -114,6 +116,8 @@ unit-test-windows:
     - coverage report -m
     - coverage xml
   artifacts:
+    paths:
+      - coverage.xml
     reports:
       coverage_report:
         coverage_format: cobertura
