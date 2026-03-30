@@ -18,18 +18,15 @@
     AVAL_VERBOSE: "true"
     GIT_STRATEGY: none
   script:
-    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
-      -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
-      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
+    - /usr/local/bin/entrypoint.sh "cat /etc/os-release > artifact.txt"
+      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config $DELEGATION_PATH --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
   artifacts:
     when: always
-    reports:
-      junit: report.xml
+    paths:
+      - artifact.txt
   needs:
-    - e2e-tests-container-build-manifest
     - unit-test
 
 e2e-test-apalis-imx8qm-release-with-rac:
@@ -76,18 +73,15 @@ e2e-test-verdin-imx8mpq-npu-release:
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   script:
-    - /usr/local/bin/entrypoint.sh "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
-      -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
-      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
+    - /usr/local/bin/entrypoint.sh "cat /etc/os-release > artifact.txt"
+      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config /aval/delegation_config.toml --device-config /aval/verdin-imx8mpq-npu.toml
       ${AVAL_EXTRA_OPTIONS} --before "docker system prune --force --all"
   artifacts:
     when: always
-    reports:
-      junit: report.xml
+    paths:
+      - artifact.txt
   needs:
-    - e2e-tests-container-build-manifest
     - unit-test
 
 e2e-test-sk-am62-nightly:
@@ -143,7 +137,6 @@ e2e-test-any-arm64-shell:
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - e2e-tests-container-build-manifest
     - unit-test
   before_script:
     - sudo apt update && sudo apt upgrade -y
@@ -155,16 +148,14 @@ e2e-test-any-arm64-shell:
     - source venv/bin/activate
     - pip install --upgrade pip
     - make install
-    - python main.py "docker run -e SOC_UDT=$SOC_UDT --privileged --pid host
-      -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
-      ${CI_REGISTRY}/${CI_PROJECT_PATH}/aval-e2e-tests:${CI_COMMIT_REF_NAME} /suites/run-tests.sh"
-      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
+    - python main.py "cat /etc/os-release > artifact.txt"
+      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config ./delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "./host_command.sh device_information.json"
   artifacts:
     when: always
-    reports:
-      junit: ./report.xml
+    paths:
+      - artifact.txt
 
 e2e-test-any-arm64-powershell:
   tags:
@@ -176,7 +167,6 @@ e2e-test-any-arm64-powershell:
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - e2e-tests-container-build-manifest
     - unit-test-windows
   before_script:
     # If Python is already installed, winget returns an error, which causes the CI job to fail.
@@ -195,13 +185,11 @@ e2e-test-any-arm64-powershell:
     - python -m venv venv
     - .\venv\Scripts\activate
     - pip install -r requirements.txt
-    - python main.py "docker run -e SOC_UDT=$env:SOC_UDT --privileged
-      --pid host -v /var/run/docker.sock:/var/run/docker.sock -v /home/torizon:/home/torizon
-      $env:CI_REGISTRY/$env:CI_PROJECT_PATH/aval-e2e-tests:$env:CI_COMMIT_REF_NAME /suites/run-tests.sh"
-      --remove-databases --copy-artifact /home/torizon/report.xml report.xml
+    - python main.py "cat /etc/os-release > artifact.txt"
+      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config .\delegation_config.toml --before "docker system prune --force --all"
       --run-before-on-host ".\host_command.ps1 device_information.json"
   artifacts:
     when: always
-    reports:
-      junit: .\report.xml
+    paths:
+      - artifact.txt
