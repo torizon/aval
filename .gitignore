@@ -6,4 +6,4 @@ aval/
 .env*
 .idea
 device_information.json
-
+.vscode
