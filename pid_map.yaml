@@ -30,6 +30,12 @@ common_props_npu_true: &common_props_npu_true
   soc_dpu: false
   soc_npu: true
 
+common_props_npu_only: &common_props_npu_only
+  soc_vpu: false
+  soc_gpu: false
+  soc_dpu: false
+  soc_npu: true
+
 common_props_architecture_arm: &common_props_architecture_arm
   architecture: "arm"
   common_device: false
@@ -106,6 +112,12 @@ aquila-am69octa:
       <<: *common_props_npu_true
       <<: *common_props_architecture_arm64
 
+aquila-imx95h:
+  pid4:
+    - id: "0098"
+      <<: *common_props_npu_true
+      <<: *common_props_architecture_arm64
+
 colibri-imx6dl:
   pid4:
     - id: "0015"
@@ -173,6 +185,30 @@ colibri-imx8qxp:
       <<: *common_props_architecture_arm64
     - id: "0050"
       <<: *common_props_default
+      <<: *common_props_architecture_arm64
+
+lino-imx91:
+  pid4:
+    - id: "0218"
+      <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm64
+
+lino-imx93d:
+  pid4:
+    - id: "0217"
+      <<: *common_props_npu_only
+      <<: *common_props_architecture_arm64
+
+osm-imx91:
+  pid4:
+    - id: "0220"
+      <<: *common_props_gpu_false
+      <<: *common_props_architecture_arm64
+
+osm-imx93d:
+  pid4:
+    - id: "0219"
+      <<: *common_props_npu_only
       <<: *common_props_architecture_arm64
 
 smarc-imx8mpq:
