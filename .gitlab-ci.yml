@@ -12,7 +12,7 @@ include:
 
 default:
   tags:
-    - saas-linux-small-amd64
+    - amd64
 
 lint:
   <<: *skip_on_watch
@@ -58,14 +58,12 @@ aval-container-build-amd64:
 aval-container-build-arm64:
   extends: .aval-container-build
   tags:
-    - saas-linux-small-arm64
+    - arm64
   variables:
     PLATFORM: arm64/v8
     DOCKER_SUFIX: arm64
 
 aval-container-build-manifest:
-  tags:
-    - saas-linux-small-amd64
   image:
     name: docker:dind
     pull_policy: always

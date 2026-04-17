@@ -14,7 +14,7 @@
 
 default:
   tags:
-    - saas-linux-small-amd64
+    - amd64
 
 .sentry-container-build:
   image:
@@ -51,6 +51,8 @@ sentry-container-build-amd64:
 
 sentry-container-build-arm64:
   extends: .sentry-container-build
+  tags:
+    - arm64
   variables:
     PLATFORM: arm64/v8
     DOCKER_SUFIX: arm64
