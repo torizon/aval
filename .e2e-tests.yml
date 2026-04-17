@@ -169,7 +169,7 @@ e2e-test-any-arm64-powershell:
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - unit-test-windows
+    - unit-test
   before_script:
     # If Python is already installed, winget returns an error, which causes the CI job to fail.
     # So, check if it's installed and, if it is, force LASTEXITCODE = 0.

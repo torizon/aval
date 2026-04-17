@@ -98,33 +98,6 @@ unit-test:
   needs:
     - aval-container-build-manifest
 
-unit-test-windows:
-  <<: *skip_on_watch
-  tags:
-    - saas-windows-medium-amd64
-  before_script:
-    # Install python 3.12
-    - curl.exe -L -o python-installer.exe https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
-    - powershell -Command "Start-Process -FilePath python-installer.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0' -Wait"
-    - powershell -Command "& 'C:\Program Files\Python312\python.exe' --version"
-  script:
-    - powershell -Command "& 'C:\Program Files\Python312\python.exe' -m venv venv"
-    - .\venv\Scripts\python.exe -m pip install --upgrade pip
-    - .\venv\Scripts\activate
-    - pip install -r requirements.txt
-    - coverage run -m unittest discover -v -s . -p 'test_*.py'
-    - coverage report -m
-    - coverage xml
-  artifacts:
-    paths:
-      - coverage.xml
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-  needs:
-    - aval-container-build-manifest
-
 flake8-lint:
   image:
     name: python:3.12
