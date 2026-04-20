@@ -19,7 +19,7 @@
     GIT_STRATEGY: none
   script:
     - /usr/local/bin/entrypoint.sh "cat /etc/os-release > artifact.txt"
-      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
+      --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config $DELEGATION_PATH --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "/aval/host_command.sh device_information.json"
   artifacts:
@@ -76,7 +76,7 @@ e2e-test-verdin-imx8mpq-npu-release:
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   script:
     - /usr/local/bin/entrypoint.sh "cat /etc/os-release > artifact.txt"
-      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
+      --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config /aval/delegation_config.toml --device-config /aval/verdin-imx8mpq-npu.toml
       ${AVAL_EXTRA_OPTIONS} --before "docker system prune --force --all"
   artifacts:
@@ -151,7 +151,7 @@ e2e-test-any-arm64-shell:
     - pip install --upgrade pip
     - make install
     - python main.py "cat /etc/os-release > artifact.txt"
-      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
+      --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config ./delegation_config.toml --before "docker system prune --force --all"
       ${AVAL_EXTRA_OPTIONS} --run-before-on-host "./host_command.sh device_information.json"
   artifacts:
@@ -188,7 +188,7 @@ e2e-test-any-arm64-powershell:
     - .\venv\Scripts\activate
     - pip install -r requirements.txt
     - python main.py "cat /etc/os-release > artifact.txt"
-      --remove-databases --copy-artifact /home/torizon/artifact.txt artifact.txt
+      --copy-artifact /home/torizon/artifact.txt artifact.txt
       --delegation-config .\delegation_config.toml --before "docker system prune --force --all"
       --run-before-on-host ".\host_command.ps1 device_information.json"
   artifacts:
