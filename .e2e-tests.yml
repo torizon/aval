@@ -29,7 +29,7 @@
   needs:
     - unit-test
 
-e2e-test-apalis-imx8qm-release-with-rac:
+e2e-test-apalis-imx8qm-release:
   extends: .e2e-test-template
   resource_group: apalis-imx8qm
   tags:
@@ -45,17 +45,19 @@ e2e-test-apalis-imx8qm-nightly:
   resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
+    USE_RAC: "true"
     TARGET_BUILD_TYPE: "nightly"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - e2e-test-apalis-imx8qm-release-with-rac
+    - e2e-test-apalis-imx8qm-release
 
 e2e-test-apalis-imx8qm-release-again:
   extends: .e2e-test-template
   resource_group: apalis-imx8qm
   variables:
     SOC_UDT: "apalis-imx8qm"
+    USE_RAC: "true"
     TARGET_BUILD_TYPE: "release"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
@@ -71,6 +73,7 @@ e2e-test-verdin-imx8mpq-npu-release:
     pull_policy: always
   <<: *skip_on_watch
   variables:
+    USE_RAC: "true"
     TARGET_BUILD_TYPE: "release"
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
@@ -92,6 +95,7 @@ e2e-test-sk-am62-nightly:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "sk-am62"
+    USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
     AVAL_EXTRA_OPTIONS: ""
 
@@ -101,6 +105,7 @@ e2e-test-torizon-x86-nightly:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "torizon-x86"
+    USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
     AVAL_EXTRA_OPTIONS: ""
 
@@ -109,6 +114,7 @@ e2e-test-any-arm64-cd:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "arm64"
+    USE_RAC: "true"
     USE_COMMON_DEVICES: "true"
     DELEGATION_PATH: "/aval/delegation_config_common.toml"
     AVAL_EXTRA_OPTIONS: ""
@@ -118,6 +124,7 @@ e2e-test-any-arm64-nightly:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "arm64"
+    USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
@@ -126,6 +133,7 @@ e2e-test-any-arm-release:
   variables:
     TARGET_BUILD_TYPE: "release"
     SOC_UDT: "arm"
+    USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
@@ -136,6 +144,7 @@ e2e-test-any-arm64-shell:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "arm64"
+    USE_RAC: "true"
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
@@ -166,6 +175,7 @@ e2e-test-any-arm64-powershell:
   variables:
     TARGET_BUILD_TYPE: "nightly"
     SOC_UDT: "arm64"
+    USE_RAC: "true"
     AVAL_VERBOSE: "true"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
