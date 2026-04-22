@@ -31,38 +31,38 @@ default:
   needs:
     - unit-test
 
-e2e-test-apalis-imx8qm-release:
+e2e-test-aquila-am69octa-release:
   extends: .e2e-test-template
-  resource_group: apalis-imx8qm
+  resource_group: aquila-am69octa
   variables:
-    SOC_UDT: "apalis-imx8qm"
+    SOC_UDT: "aquila-am69octa"
     USE_RAC: "true"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
 
-e2e-test-apalis-imx8qm-nightly:
+e2e-test-aquila-am69octa-nightly:
   extends: .e2e-test-template
-  resource_group: apalis-imx8qm
+  resource_group: aquila-am69octa
   variables:
-    SOC_UDT: "apalis-imx8qm"
+    SOC_UDT: "aquila-am69octa"
     USE_RAC: "true"
     TARGET_BUILD_TYPE: "nightly"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - e2e-test-apalis-imx8qm-release
+    - e2e-test-aquila-am69octa-release
 
-e2e-test-apalis-imx8qm-release-again:
+e2e-test-aquila-am69octa-release-again:
   extends: .e2e-test-template
-  resource_group: apalis-imx8qm
+  resource_group: aquila-am69octa
   variables:
-    SOC_UDT: "apalis-imx8qm"
+    SOC_UDT: "aquila-am69octa"
     USE_RAC: "true"
     TARGET_BUILD_TYPE: "release"
     DELEGATION_PATH: "/aval/delegation_config.toml"
     AVAL_EXTRA_OPTIONS: "--ignore-different-secondaries-between-updates"
   needs:
-    - e2e-test-apalis-imx8qm-nightly
+    - e2e-test-aquila-am69octa-nightly
 
 e2e-test-verdin-imx8mpq-npu-release:
   resource_group: verdin-imx8mpq
