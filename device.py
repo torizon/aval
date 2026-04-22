@@ -38,7 +38,7 @@ class Device:
         self.connection = None
 
     def create_ssh_connnection(self):
-        if self._env_vars["USE_RAC"]:
+        if self._use_rac():
             self.setup_rac_session(RAC_IP)
         else:
             self.setup_usual_ssh_session()
@@ -63,13 +63,18 @@ class Device:
             },
         )
 
-        if self.test_connection():
+        sleep_time = 30 if self._use_rac() else 10
+
+        if self.test_connection(sleep_time=sleep_time):
             self._log.debug(f"Connection test succeeded for device {self.uuid}")
         else:
             self._log.error(f"Connection test failed for device {self.uuid}")
             raise ConnectionError(
                 f"Failed to establish connection with device {self.uuid}"
             )
+
+    def _use_rac(self):
+        return str(self._env_vars.get("USE_RAC", "")).strip().lower() == "true"
 
     def setup_usual_ssh_session(self):
         self.remote_session_ip = self.network_info["localIpV4"]
@@ -355,8 +360,8 @@ class Device:
         self._log.info(f"Obtained network info for {self.uuid}")
         return res.json()
 
-    def test_connection(self, sleep_time=10):
-        for tries in range(5):
+    def test_connection(self, sleep_time):
+        for tries in range(10):
             try:
                 res = self.connection.run("true", warn=True, hide=True)
                 if res.exited == 0:
