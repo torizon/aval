@@ -97,7 +97,10 @@ First, fill in the information from the provided `.env.template` into a new `.en
 
 The easiest way to develop is by mounting only the `.env` file inside the AVAL container like so:
 
+Since AVAL is a rolling-release project, always pull the latest image before running:
+
 ```
+$ docker pull registry.gitlab.com/toradex/rd/torizon-core/aval/aval:main
 $ docker run -it -v $(pwd)/.env:/aval/.env --entrypoint bash registry.gitlab.com/toradex/rd/torizon-core/aval/aval:main
 ```
 
