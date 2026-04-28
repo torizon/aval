@@ -1,6 +1,5 @@
 include:
   - ".e2e-tests.yml"
-  - "sentry/.sentry-watch.yml"
 
 .skip_on_watch: &skip_on_watch
   rules:

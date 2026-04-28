@@ -99,17 +99,24 @@ def acquire_lock(device_uuid):
     logger.info(f"Attempting to acquire lock for device {device_uuid}")
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
+            # Take the lock if the device is free or its lock is older than
+            # 3 minutes (heartbeat updates every 2 minutes, so anything older
+            # belongs to a dead process).
             cursor.execute(
-                "SELECT is_locked FROM devices WHERE device_uuid = %s FOR UPDATE",
+                """
+                UPDATE devices
+                SET is_locked = TRUE, timestamp = NOW()
+                WHERE device_uuid = %s
+                  AND (is_locked = FALSE
+                       OR timestamp < NOW() - INTERVAL '3 minutes')
+                RETURNING device_uuid
+                """,
                 (device_uuid,),
             )
-            result = cursor.fetchone()
-            if result and not result[0]:
-                cursor.execute(
-                    "UPDATE devices SET is_locked = TRUE, timestamp = NOW() WHERE device_uuid = %s",
-                    (device_uuid,),
-                )
-                conn.commit()
+            acquired = cursor.fetchone() is not None
+            conn.commit()
+
+            if acquired:
                 logger.info(
                     f"Lock acquired successfully for device {device_uuid}"
                 )
