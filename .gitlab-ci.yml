@@ -23,11 +23,12 @@ lint:
 
 .aval-container-build:
   image:
-    name: docker:dind
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:dind
     pull_policy: always
   <<: *skip_on_watch
   services:
-    - name: docker:dind
+    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:dind
+      alias: docker
       pull_policy: always
   variables:
     DOCKER_HOST: tcp://docker:2375
@@ -64,7 +65,7 @@ aval-container-build-arm64:
 
 aval-container-build-manifest:
   image:
-    name: docker:dind
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:dind
     pull_policy: always
   <<: *skip_on_watch
   needs:
@@ -97,7 +98,7 @@ unit-test:
 
 flake8-lint:
   image:
-    name: python:3.12
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12
     # "pull_policy: if-not-present" would be the most appropriate option here;
     # however, GitLab SaaS runners do not support this pull_policy
     pull_policy: always
@@ -113,7 +114,7 @@ flake8-lint:
 # indication we should update because tools are moving to 1.2 as the default.
 validate-yaml:
   image:
-    name: node:latest
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:latest
     pull_policy: always
   <<: *skip_on_watch
   script:
@@ -122,12 +123,13 @@ validate-yaml:
 
 release:
   image:
-    name: docker:dind
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:dind
     pull_policy: always
   <<: *skip_on_watch
   stage: deploy
   services:
-    - name: docker:dind
+    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:dind
+      alias: docker
       pull_policy: always
   variables:
     DOCKER_HOST: tcp://docker:2375
