@@ -33,15 +33,14 @@ class TestDeviceHandler(unittest.TestCase):
         self.args = MagicMock()
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
     @patch("subprocess.check_call")
     def test_process_device_with_command_posix(
-        self, mock_check_call, mock_Device, mock_common, mock_database
+        self, mock_check_call, mock_Device, mock_database
     ):
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -76,15 +75,14 @@ class TestDeviceHandler(unittest.TestCase):
         dut_instance.connection.run.assert_called_once_with(args.command)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
     @patch("subprocess.check_call")
     def test_process_device_with_command_windows(
-        self, mock_check_call, mock_Device, mock_common, mock_database
+        self, mock_check_call, mock_Device, mock_database
     ):
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -118,14 +116,13 @@ class TestDeviceHandler(unittest.TestCase):
         dut_instance.connection.run.assert_called_once_with(args.command)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
     def test_process_device_with_command_unknown_os(
-        self, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_database
     ):
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -153,14 +150,11 @@ class TestDeviceHandler(unittest.TestCase):
         )
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_process_device_successful(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_process_device_successful(self, mock_Device, mock_database):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = False
         mock_database.try_until_locked.return_value = True
@@ -181,14 +175,11 @@ class TestDeviceHandler(unittest.TestCase):
         self.logger.info.assert_any_call(f"Lock acquired for device {uuid}")
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_process_device_failed_connection(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_process_device_failed_connection(self, mock_Device, mock_database):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = False
         mock_database.try_until_locked.return_value = True
@@ -216,14 +207,13 @@ class TestDeviceHandler(unittest.TestCase):
         mock_database.release_lock.assert_called_with(uuid)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
     def test_process_device_exception_handling(
-        self, mock_Device, mock_common, mock_database
+        self, mock_Device, mock_database
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -239,12 +229,9 @@ class TestDeviceHandler(unittest.TestCase):
         self.mock_sys_exit.assert_called_with(1)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
-    def test_process_device_failed_to_acquire_lock(
-        self, mock_common, mock_database
-    ):
+    def test_process_device_failed_to_acquire_lock(self, mock_database):
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = False
@@ -256,11 +243,10 @@ class TestDeviceHandler(unittest.TestCase):
         self.assertFalse(result)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
     @patch("subprocess.check_call")
     def test_process_device_with_copy_artifact(
-        self, mock_check_call, mock_Device, mock_common, mock_database
+        self, mock_check_call, mock_Device, mock_database
     ):
         dut_instance = MagicMock()
         dut_instance.remote_session_ip = "192.168.1.100"
@@ -270,7 +256,7 @@ class TestDeviceHandler(unittest.TestCase):
         dut_instance.connection.get = MagicMock()
 
         mock_Device.return_value = dut_instance
-        mock_common.parse_hardware_id.return_value = "verdin-imx8mm"
+        self.cloud.get_hardware_id.return_value = "verdin-imx8mm"
 
         args = MagicMock()
         args.copy_artifact = [
@@ -292,16 +278,13 @@ class TestDeviceHandler(unittest.TestCase):
         self.assertTrue(result)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_process_device_use_rac(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_process_device_use_rac(self, mock_Device, mock_database):
         self.env_vars["USE_RAC"] = True
 
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -325,13 +308,12 @@ class TestDeviceHandler(unittest.TestCase):
 
     @patch("device_handler.Device")
     @patch("device_handler.database")
-    @patch("device_handler.common")
     def test_process_device_device_not_in_database(
-        self, mock_common, mock_database, mock_Device
+        self, mock_database, mock_Device
     ):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = False
         mock_database.try_until_locked.return_value = True
@@ -351,14 +333,11 @@ class TestDeviceHandler(unittest.TestCase):
         mock_database.release_lock.assert_called_once_with(uuid)
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_hacking_session_normal_exit(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_hacking_session_normal_exit(self, mock_Device, mock_database):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -391,14 +370,11 @@ class TestDeviceHandler(unittest.TestCase):
         self.logger.error.assert_not_called()
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_hacking_session_exit_code_1(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_hacking_session_exit_code_1(self, mock_Device, mock_database):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -431,14 +407,11 @@ class TestDeviceHandler(unittest.TestCase):
         self.logger.error.assert_not_called()
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_hacking_session_exit_code_130(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_hacking_session_exit_code_130(self, mock_Device, mock_database):
         uuid = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True
@@ -471,14 +444,11 @@ class TestDeviceHandler(unittest.TestCase):
         self.logger.error.assert_not_called()
 
     @patch("device_handler.database")
-    @patch("device_handler.common")
     @patch("device_handler.Device")
-    def test_hacking_session_unexpected_error(
-        self, mock_Device, mock_common, mock_database
-    ):
+    def test_hacking_session_unexpected_error(self, mock_Device, mock_database):
         _ = self.device["deviceUuid"]
         hardware_id = "verdin-imx8mm"
-        mock_common.parse_hardware_id.return_value = hardware_id
+        self.cloud.get_hardware_id.return_value = hardware_id
 
         mock_database.device_exists.return_value = True
         mock_database.try_until_locked.return_value = True

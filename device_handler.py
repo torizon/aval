@@ -6,7 +6,6 @@ import os
 import re
 
 import database
-import common
 import logging_setup
 from device import Device
 
@@ -17,7 +16,7 @@ logger = logging_setup.setup_logging()
 def process_devices(devices, cloud, env_vars, args):
     for index, device in enumerate(devices):
         uuid = device["deviceUuid"]
-        hardware_id = common.parse_hardware_id(device["deviceId"])
+        hardware_id = cloud.get_hardware_id(uuid)
         logger.debug(f"hardware_id: {hardware_id}")
 
         if not database.device_exists(uuid):

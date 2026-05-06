@@ -266,6 +266,33 @@ class CloudAPI:
         self._log.info(f"Got package metadata for device {uuid}")
         return res.json()["values"]
 
+    def get_hardware_id(self, uuid):
+        res = endpoint_call(
+            url=API_BASE_URL + f"/devices/packages/{uuid}",
+            request_type="get",
+            body=None,
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "accept": "application/json",
+            },
+            json_data=None,
+        )
+        components = [
+            pkg["component"] for pkg in res.json().get("installedPackages", [])
+        ]
+        os_components = [
+            c
+            for c in components
+            if c != "docker-compose"
+            and not c.endswith(("-bootloader", "-fuses"))
+        ]
+        if len(os_components) != 1:
+            raise Exception(
+                f"Could not determine hardware_id for device {uuid}: "
+                f"expected exactly one OS component, got {os_components}"
+            )
+        return os_components[0]
+
     def extract_in_flight(self, data):
         for item in data:
             return item.get("inFlight")
