@@ -21,6 +21,9 @@ def endpoint_call(url, request_type, headers=None, body=None, json_data=None):
             raise ValueError(f"request type {request_type} not supported")
 
         res.raise_for_status()
+        logger.debug(
+            f"{request_type.upper()} {url} -> {res.status_code}: {res.text}"
+        )
         return res
 
     except requests.exceptions.RequestException as e:
