@@ -99,9 +99,7 @@ unit-test:
 flake8-lint:
   image:
     name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12
-    # "pull_policy: if-not-present" would be the most appropriate option here;
-    # however, GitLab SaaS runners do not support this pull_policy
-    pull_policy: always
+    pull_policy: if-not-present
   <<: *skip_on_watch
   script:
     - pip install flake8
